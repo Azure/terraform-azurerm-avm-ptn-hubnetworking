@@ -1,6 +1,8 @@
 module github.com/Azure/terraform-azure-hubandspoke/test
 
-go 1.19
+go 1.21
+
+toolchain go1.21.4
 
 require (
 	github.com/Azure/terraform-module-test-helper v0.14.0

@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "rg" {
     avm_git_org              = "Azure"
     avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
     avm_yor_name             = "rg"
-    avm_yor_trace            = "483ef503-d7dd-4c7d-aff0-ca35fbb42db1"
+    avm_yor_trace            = "f48a6bb9-e2a2-47dc-8663-511a0ff70c96"
   } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/))
 }
 
@@ -90,7 +90,7 @@ resource "azurerm_route_table" "hub_routing" {
     avm_git_org              = "Azure"
     avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
     avm_yor_name             = "hub_routing"
-    avm_yor_trace            = "2f7f83ab-066e-4757-a214-80694c6b7d8b"
+    avm_yor_trace            = "e942eb18-f7cd-481e-a3ba-0c7815c05857"
   } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
 
   route {
@@ -151,7 +151,7 @@ resource "azurerm_public_ip" "fw_default_ip_configuration_pip" {
     avm_git_org              = "Azure"
     avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
     avm_yor_name             = "fw_default_ip_configuration_pip"
-    avm_yor_trace            = "99a148f4-b51e-40df-bcca-9f6d7e583450"
+    avm_yor_trace            = "ae85c6f7-49d4-439c-9fcc-028654adce39"
   } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
   zones = each.value.zones
 }
@@ -173,7 +173,7 @@ resource "azurerm_public_ip" "fw_management_ip_configuration_pip" {
     avm_git_org              = "Azure"
     avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
     avm_yor_name             = "fw_management_ip_configuration_pip"
-    avm_yor_trace            = "04fad483-2408-4c59-a3f5-8710f6d06765"
+    avm_yor_trace            = "cba83cdf-25a4-43ed-9b79-69c8da133abc"
   } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
   zones = each.value.zones
 }
@@ -227,7 +227,13 @@ resource "azurerm_firewall" "fw" {
   private_ip_ranges   = each.value.private_ip_ranges
   tags = merge(each.value.tags, (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
     avm_yor_name  = "fw"
-    avm_yor_trace = "53f17dd0-a92e-4620-bed6-a23441229d29"
+    avm_yor_trace = "26da0e94-b18c-4bd6-9f3d-69264ded141c"
+    } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/), (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
+    avm_git_commit           = "7642c66da269658aac815353f23f030696684632"
+    avm_git_file             = "main.tf"
+    avm_git_last_modified_at = "2023-02-24 10:28:10"
+    avm_git_org              = "Azure"
+    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
   } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/))
   threat_intel_mode = each.value.threat_intel_mode
   zones             = each.value.zones
