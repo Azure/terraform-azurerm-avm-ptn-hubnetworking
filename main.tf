@@ -15,7 +15,15 @@ resource "azurerm_resource_group" "rg" {
 
   location = each.value.location
   name     = each.key
-  tags     = each.value.tags
+  tags = merge(each.value.tags, (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
+    avm_git_commit           = "2c089a3ac8972bdb97f6de5665678299705fa853"
+    avm_git_file             = "main.tf"
+    avm_git_last_modified_at = "2023-02-08 02:04:55"
+    avm_git_org              = "Azure"
+    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
+    avm_yor_name             = "rg"
+    avm_yor_trace            = "483ef503-d7dd-4c7d-aff0-ca35fbb42db1"
+  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/))
 }
 
 resource "azurerm_management_lock" "rg_lock" {
@@ -75,7 +83,15 @@ resource "azurerm_route_table" "hub_routing" {
   name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name, "route-${each.key}")
   resource_group_name           = try(azurerm_resource_group.rg[var.hub_virtual_networks[each.key].resource_group_name].name, var.hub_virtual_networks[each.key].resource_group_name)
   disable_bgp_route_propagation = false
-  tags                          = {}
+  tags = (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
+    avm_git_commit           = "f0e06dd2b71ff7fc285efa135471f3e2bcef7e7a"
+    avm_git_file             = "main.tf"
+    avm_git_last_modified_at = "2023-07-04 10:14:08"
+    avm_git_org              = "Azure"
+    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
+    avm_yor_name             = "hub_routing"
+    avm_yor_trace            = "2f7f83ab-066e-4757-a214-80694c6b7d8b"
+  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
 
   route {
     address_prefix = "0.0.0.0/0"
@@ -128,8 +144,16 @@ resource "azurerm_public_ip" "fw_default_ip_configuration_pip" {
   ip_version          = each.value.ip_version
   sku                 = "Standard"
   sku_tier            = each.value.sku_tier
-  tags                = {}
-  zones               = each.value.zones
+  tags = (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
+    avm_git_commit           = "9d2530df182c2a04d3e065d6312cf623482769da"
+    avm_git_file             = "main.tf"
+    avm_git_last_modified_at = "2023-03-07 01:43:45"
+    avm_git_org              = "Azure"
+    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
+    avm_yor_name             = "fw_default_ip_configuration_pip"
+    avm_yor_trace            = "99a148f4-b51e-40df-bcca-9f6d7e583450"
+  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
+  zones = each.value.zones
 }
 
 resource "azurerm_public_ip" "fw_management_ip_configuration_pip" {
@@ -142,8 +166,16 @@ resource "azurerm_public_ip" "fw_management_ip_configuration_pip" {
   ip_version          = each.value.ip_version
   sku                 = "Standard"
   sku_tier            = each.value.sku_tier
-  tags                = {}
-  zones               = each.value.zones
+  tags = (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
+    avm_git_commit           = "a5adfe3141080bef44f5b5d71806635ef562f63b"
+    avm_git_file             = "main.tf"
+    avm_git_last_modified_at = "2023-08-08 19:29:32"
+    avm_git_org              = "Azure"
+    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
+    avm_yor_name             = "fw_management_ip_configuration_pip"
+    avm_yor_trace            = "04fad483-2408-4c59-a3f5-8710f6d06765"
+  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
+  zones = each.value.zones
 }
 
 resource "azurerm_subnet" "fw_subnet" {
@@ -193,16 +225,18 @@ resource "azurerm_firewall" "fw" {
   dns_servers         = each.value.dns_servers
   firewall_policy_id  = each.value.firewall_policy_id
   private_ip_ranges   = each.value.private_ip_ranges
-  tags                = each.value.tags
-  threat_intel_mode   = each.value.threat_intel_mode
-  zones               = each.value.zones
+  tags = merge(each.value.tags, (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
+    avm_yor_name  = "fw"
+    avm_yor_trace = "53f17dd0-a92e-4620-bed6-a23441229d29"
+  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/))
+  threat_intel_mode = each.value.threat_intel_mode
+  zones             = each.value.zones
 
   ip_configuration {
     name                 = each.value.default_ip_configuration.name
     public_ip_address_id = azurerm_public_ip.fw_default_ip_configuration_pip[each.key].id
     subnet_id            = azurerm_subnet.fw_subnet[each.key].id
   }
-
   dynamic "management_ip_configuration" {
     for_each = each.value.sku_tier == "Basic" ? ["managementIpConfiguration"] : []
 

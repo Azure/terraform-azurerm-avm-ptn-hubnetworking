@@ -91,7 +91,6 @@ resource "azurerm_linux_virtual_machine" "spoke1" {
   resource_group_name = azurerm_resource_group.spoke1.name
   size                = "Standard_B2ms"
 
-
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"

@@ -1,4 +1,13 @@
 locals {
+  firewall_management_subnets = {
+    for k, v in var.hub_virtual_networks : k => {
+      address_prefixes     = [v.firewall.management_subnet_address_prefix]
+      name                 = "AzureFirewallManagementSubnet"
+      resource_group_name  = v.resource_group_name
+      virtual_network_name = v.name
+    }
+    if try(v.firewall.sku_tier, "FirewallNull") == "Basic" && v.firewall != null
+  }
   firewalls = {
     for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
       name                  = coalesce(vnet.firewall.name, "afw-${vnet_name}")
@@ -19,15 +28,6 @@ locals {
       }
       zones = vnet.firewall.zones
     } if vnet.firewall != null
-  }
-  firewall_management_subnets = {
-    for k, v in var.hub_virtual_networks : k => {
-      address_prefixes     = [v.firewall.management_subnet_address_prefix]
-      name                 = "AzureFirewallManagementSubnet"
-      resource_group_name  = v.resource_group_name
-      virtual_network_name = v.name
-    }
-    if try(v.firewall.sku_tier, "FirewallNull") == "Basic" && v.firewall != null
   }
   fw_default_ip_configuration_pip = {
     for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
