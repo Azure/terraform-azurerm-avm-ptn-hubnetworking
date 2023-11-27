@@ -77,7 +77,16 @@ variable "hub_virtual_networks" {
           sku_tier   = optional(string, "Regional")
           zones      = optional(set(string))
         }))
-      }))
+      }), null)
+      ip_configurations = map(object({
+        name = string
+        public_ip_config = optional(object({
+          ip_version = optional(string)
+          name       = optional(string)
+          sku_tier   = optional(string, "Regional")
+          zones      = optional(set(string))
+        }))
+      }), {})
       management_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({

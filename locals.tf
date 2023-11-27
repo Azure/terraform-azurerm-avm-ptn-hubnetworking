@@ -30,19 +30,30 @@ locals {
     } if vnet.firewall != null
   }
   fw_default_ip_configuration_pip = {
-    for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
-      location            = local.virtual_networks_modules[vnet_name].vnet_location
-      name                = try(vnet.firewall.default_ip_configuration.public_ip_config.name, "pip-afw-${vnet_name}")
+    for k, v in var.hub_virtual_networks : k => {
+      location            = local.virtual_networks_modules[k].vnet_location
+      name                = try(v.firewall.default_ip_configuration.public_ip_config.name, "pip-afw-${v.firewall.name}")
       resource_group_name = vnet.resource_group_name
-      ip_version          = try(vnet.firewall.default_ip_configuration.public_ip_config.ip_version, "IPv4")
-      sku_tier            = try(vnet.firewall.default_ip_configuration.public_ip_config.sku_tier, "Regional")
-      zones               = try(vnet.firewall.default_ip_configuration.public_ip_config.zones, null)
+      ip_version          = try(v.firewall.default_ip_configuration.public_ip_config.ip_version, "IPv4")
+      sku_tier            = try(v.firewall.default_ip_configuration.public_ip_config.sku_tier, "Regional")
+      zones               = try(v.firewall.default_ip_configuration.public_ip_config.zones, null)
     } if vnet.firewall != null
+  }
+  fw_ip_configurations = {
+    for item in flatten([
+      for vnet_k, vnet_v in var.virtual_networks : [
+        for fwip_k, fwip_v in try(vnet_v.firewall.ip_configurations, {}) : {
+          vnet_key         = vnet_k
+          fwip_key         = fwip_k
+          ip_configuration = fwip_v
+        }
+      ]
+    ]) : format("%s/%s", item.vnet_key, item.fwip_key) => item.ip_configuration
   }
   fw_management_ip_configuration_pip = {
     for k, v in var.hub_virtual_networks : k => {
       location            = local.virtual_networks_modules[k].vnet_location
-      name                = try(v.firewall.management_ip_configuration.public_ip_config.name, "pip-afw-mgmt-${k}")
+      name                = try(v.firewall.management_ip_configuration.public_ip_config.name, "pip-afw-mgmt-${v.firewall.name}")
       resource_group_name = v.resource_group_name
       ip_version          = try(v.firewall.management_ip_coniguration.public_ip_config.ip_version, "IPv4")
       sku_tier            = try(v.firewall.management_ip_coniguration.public_ip_config.sku_tier, "Regional")
@@ -130,4 +141,3 @@ locals {
     }
   }
 }
-
