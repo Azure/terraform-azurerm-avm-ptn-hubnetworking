@@ -4,21 +4,39 @@ resource "azurerm_resource_group" "spoke2" {
 }
 
 module "spoke2_vnet" {
-  source  = "Azure/subnets/azurerm"
-  version = "1.0.0"
+  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version = "0.2.3"
 
+  name                = "spoke2-vnet-${random_pet.rand.id}"
+  address_space       = ["192.168.1.0/24"]
   resource_group_name = azurerm_resource_group.spoke2.name
+  location            = azurerm_resource_group.spoke2.location
+
+  peerings = {
+    "spoke2-peering" = {
+      name                                 = "spoke2-peering"
+      remote_virtual_network_resource_id   = module.hub_mesh.virtual_networks["eastus2-hub"].id
+      allow_forwarded_traffic              = true
+      allow_gateway_transit                = false
+      allow_virtual_network_access         = true
+      use_remote_gateways                  = false
+      create_reverse_peering               = true
+      reverse_name                         = "spoke2-peering-back"
+      reverse_allow_forwarded_traffic      = false
+      reverse_allow_gateway_transit        = false
+      reverse_allow_virtual_network_access = true
+      reverse_use_remote_gateways          = false
+    }
+  }
   subnets = {
     spoke2-subnet = {
+      name             = "spoke2-subnet"
       address_prefixes = ["192.168.1.0/24"]
       route_table = {
         id = azurerm_route_table.spoke2.id
       }
     }
   }
-  virtual_network_address_space = ["192.168.1.0/24"]
-  virtual_network_location      = azurerm_resource_group.spoke2.location
-  virtual_network_name          = "spoke2-vnet-${random_pet.rand.id}"
 }
 
 resource "azurerm_route_table" "spoke2" {
@@ -45,28 +63,6 @@ resource "azurerm_route" "spoke2_to_hub2" {
   next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus2-hub"].hub_router_ip_address
 }
 
-resource "azurerm_virtual_network_peering" "spoke2_peering" {
-  name                         = "spoke2-peering"
-  remote_virtual_network_id    = module.hub_mesh.virtual_networks["eastus2-hub"].id
-  resource_group_name          = azurerm_resource_group.spoke2.name
-  virtual_network_name         = module.spoke2_vnet.vnet_name
-  allow_forwarded_traffic      = true
-  allow_gateway_transit        = true
-  allow_virtual_network_access = true
-  use_remote_gateways          = false
-}
-
-resource "azurerm_virtual_network_peering" "spoke2_peering_back" {
-  name                         = "spoke2-peering-back"
-  remote_virtual_network_id    = module.spoke2_vnet.vnet_id
-  resource_group_name          = module.hub_mesh.virtual_networks["eastus2-hub"].resource_group_name
-  virtual_network_name         = module.hub_mesh.virtual_networks["eastus2-hub"].name
-  allow_forwarded_traffic      = true
-  allow_gateway_transit        = true
-  allow_virtual_network_access = true
-  use_remote_gateways          = false
-}
-
 resource "azurerm_public_ip" "spoke2" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.spoke2.location
@@ -84,7 +80,7 @@ resource "azurerm_network_interface" "spoke2" {
     name                          = "nic"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.spoke2.id
-    subnet_id                     = module.spoke2_vnet.vnet_subnets_name_id["spoke2-subnet"]
+    subnet_id                     = module.spoke2_vnet.subnets["spoke2-subnet"].resource_id
   }
 }
 

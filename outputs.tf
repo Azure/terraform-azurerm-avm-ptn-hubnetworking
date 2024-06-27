@@ -1,10 +1,10 @@
 output "firewalls" {
   description = "A curated output of the firewalls created by this module."
   value = {
-    for vnet_name, fw in azurerm_firewall.fw : vnet_name => {
-      id                           = fw.id
-      name                         = fw.name
-      private_ip_address           = try(fw.ip_configuration[0].private_ip_address, null)
+    for vnet_name, fw in module.hub_firewalls : vnet_name => {
+      id                           = fw.resource_id
+      name                         = fw.resource.name
+      private_ip_address           = try(fw.resource.ip_configuration[0].private_ip_address, null)
       public_ip_address            = try(azurerm_public_ip.fw_default_ip_configuration_pip[vnet_name].ip_address)
       management_public_ip_address = try(azurerm_public_ip.fw_management_ip_configuration_pip[vnet_name].ip_address, null)
     }
@@ -44,13 +44,31 @@ output "virtual_networks" {
   description = "A curated output of the virtual networks created by this module."
   value = {
     for vnet_name, vnet_mod in module.hub_virtual_networks : vnet_name => {
-      name                  = vnet_mod.vnet_name
+      name                  = vnet_mod.name
       resource_group_name   = var.hub_virtual_networks[vnet_name].resource_group_name
-      id                    = vnet_mod.vnet_id
-      location              = vnet_mod.vnet_location
-      address_spaces        = vnet_mod.vnet_address_space
-      subnets_name_id       = vnet_mod.vnet_subnets_name_id
-      hub_router_ip_address = try(azurerm_firewall.fw[vnet_name].ip_configuration[0].private_ip_address, var.hub_virtual_networks[vnet_name].hub_router_ip_address)
+      id                    = vnet_mod.resource_id
+      location              = var.hub_virtual_networks[vnet_name].location
+      address_spaces        = var.hub_virtual_networks[vnet_name].address_space
+      subnets_name_id       = vnet_mod.subnets
+      hub_router_ip_address = try(module.hub_firewalls[vnet_name].resource.ip_configuration[0].private_ip_address, var.hub_virtual_networks[vnet_name].hub_router_ip_address)
+    }
+  }
+}
+
+
+output "testing" {
+  value = local.indexed_hub_virtual_networks
+}
+
+output "testing2" {
+  value = local.hub_peering_map
+}
+
+output "testing3" {
+  description = "A curated output of the virtual networks created by this module."
+  value = {
+    for k, v in module.hub_firewalls : k => {
+      resource = v.resource.ip_configuration[0].private_ip_address
     }
   }
 }

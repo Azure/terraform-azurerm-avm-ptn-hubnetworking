@@ -31,7 +31,7 @@ locals {
   }
   fw_default_ip_configuration_pip = {
     for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
-      location            = local.virtual_networks_modules[vnet_name].vnet_location
+      location            = vnet.location
       name                = try(vnet.firewall.default_ip_configuration.public_ip_config.name, "pip-afw-${vnet_name}")
       resource_group_name = vnet.resource_group_name
       ip_version          = try(vnet.firewall.default_ip_configuration.public_ip_config.ip_version, "IPv4")
@@ -41,7 +41,7 @@ locals {
   }
   fw_management_ip_configuration_pip = {
     for k, v in var.hub_virtual_networks : k => {
-      location            = local.virtual_networks_modules[k].vnet_location
+      location            = v.location
       name                = try(v.firewall.management_ip_configuration.public_ip_config.name, "pip-afw-mgmt-${k}")
       resource_group_name = v.resource_group_name
       ip_version          = try(v.firewall.management_ip_coniguration.public_ip_config.ip_version, "IPv4")
@@ -49,17 +49,48 @@ locals {
       zones               = try(v.firewall.management_ip_coniguration.public_ip_config.zones, null)
     } if try(v.firewall.sku_tier, "FirewallNull") == "Basic" && v.firewall != null
   }
+  indexed_hub_virtual_networks = [
+    for k, v in var.hub_virtual_networks : {
+      key   = k
+      value = v
+    }
+  ]
   hub_peering_map = {
+    for peerconfig in flatten([
+      for src_index, src_data in local.indexed_hub_virtual_networks :
+      [
+        for dst_index, dst_data in local.indexed_hub_virtual_networks :
+        {
+          name                                 = "${local.virtual_networks_modules[src_data.key].name}-${local.virtual_networks_modules[dst_data.key].name}"
+          src_key                              = src_data.key
+          dst_key                              = dst_data.key
+          virtual_network_name                 = local.virtual_networks_modules[src_data.key].name
+          remote_virtual_network_id            = local.virtual_networks_modules[dst_data.key].resource_id
+          allow_virtual_network_access         = true
+          allow_forwarded_traffic              = true
+          allow_gateway_transit                = true
+          use_remote_gateways                  = false
+          create_reverse_peering               = true
+          reverse_name                         = "${local.virtual_networks_modules[dst_data.key].name}-${local.virtual_networks_modules[src_data.key].name}"
+          reverse_allow_virtual_network_access = true
+          reverse_allow_forwarded_traffic      = true
+          reverse_allow_gateway_transit        = true
+          reverse_use_remote_gateways          = false
+        } if src_index > dst_index && dst_data.value.mesh_peering_enabled
+      ] if src_data.value.mesh_peering_enabled
+    ]) : peerconfig.name => peerconfig
+  }
+  hub_peering_map2 = {
     for peerconfig in flatten([
       for k_src, v_src in var.hub_virtual_networks :
       [
         for k_dst, v_dst in var.hub_virtual_networks :
         {
-          name                         = "${local.virtual_networks_modules[k_src].vnet_name}-${local.virtual_networks_modules[k_dst].vnet_name}"
+          name                         = "${local.virtual_networks_modules[k_src].name}-${local.virtual_networks_modules[k_dst].name}"
           src_key                      = k_src
           dst_key                      = k_dst
-          virtual_network_name         = local.virtual_networks_modules[k_src].vnet_name
-          remote_virtual_network_id    = local.virtual_networks_modules[k_dst].vnet_id
+          virtual_network_name         = local.virtual_networks_modules[k_src].name
+          remote_virtual_network_id    = local.virtual_networks_modules[k_dst].resource_id
           allow_virtual_network_access = true
           allow_forwarded_traffic      = true
           allow_gateway_transit        = true
@@ -98,7 +129,7 @@ locals {
       for k, v in var.hub_virtual_networks : [
         for subnetName, subnet in v.subnets : {
           name           = "${k}-${subnetName}"
-          subnet_id      = lookup(local.virtual_networks_modules[k].vnet_subnets_name_id, subnetName)
+          subnet_id      = lookup(local.virtual_networks_modules[k].subnets, subnetName)
           route_table_id = subnet.external_route_table_id
         } if subnet.external_route_table_id != null
       ]
@@ -109,7 +140,7 @@ locals {
       for k, v in var.hub_virtual_networks : [
         for subnetName, subnet in v.subnets : {
           name           = "${k}-${subnetName}"
-          subnet_id      = lookup(local.virtual_networks_modules[k].vnet_subnets_name_id, subnetName)
+          subnet_id      = lookup(local.virtual_networks_modules[k].subnets, subnetName)
           route_table_id = local.hub_routing[k].id
         } if subnet.assign_generated_route_table
       ]

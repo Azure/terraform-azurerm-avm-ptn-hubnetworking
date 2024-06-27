@@ -24,6 +24,7 @@ module "hub_mesh" {
       mesh_peering_enabled            = true
       route_table_name                = "contosohotel-eastus-hub-rt"
       routing_address_space           = ["10.0.0.0/16", "192.168.0.0/24"]
+      #      hub_router_ip_address           = "10.0.1.1"
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
@@ -41,6 +42,7 @@ module "hub_mesh" {
       mesh_peering_enabled            = true
       route_table_name                = "contoso-eastus2-hub-rt"
       routing_address_space           = ["10.1.0.0/16", "192.168.1.0/24"]
+      hub_router_ip_address           = "10.1.1.1"
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
