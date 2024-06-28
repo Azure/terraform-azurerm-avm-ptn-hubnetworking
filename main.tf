@@ -60,6 +60,29 @@ module "hub_virtual_networks" {
   subnets = try(local.subnets_map[each.key], {})
 }
 
+module "hub_virtual_network_peering" {
+  for_each = local.hub_peering_map
+  source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/peering"
+
+  virtual_network = {
+    resource_id = each.value.virtual_network_id
+  }
+  remote_virtual_network = {
+    resource_id = each.value.remote_virtual_network_id
+  }
+  name                                 = each.value.name
+  allow_forwarded_traffic              = each.value.allow_forwarded_traffic
+  allow_gateway_transit                = each.value.allow_gateway_transit
+  allow_virtual_network_access         = each.value.allow_virtual_network_access
+  use_remote_gateways                  = each.value.use_remote_gateways
+  create_reverse_peering               = each.value.create_reverse_peering
+  reverse_name                         = each.value.reverse_name
+  reverse_allow_forwarded_traffic      = each.value.reverse_allow_forwarded_traffic
+  reverse_allow_gateway_transit        = each.value.reverse_allow_gateway_transit
+  reverse_allow_virtual_network_access = each.value.reverse_allow_virtual_network_access
+  reverse_use_remote_gateways          = each.value.reverse_use_remote_gateways
+}
+
 resource "azurerm_route_table" "hub_routing" {
   for_each = local.route_map
 

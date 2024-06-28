@@ -64,7 +64,7 @@ locals {
           name                                 = "${local.virtual_networks_modules[src_data.key].name}-${local.virtual_networks_modules[dst_data.key].name}"
           src_key                              = src_data.key
           dst_key                              = dst_data.key
-          virtual_network_name                 = local.virtual_networks_modules[src_data.key].name
+          virtual_network_id                   = local.virtual_networks_modules[src_data.key].resource_id
           remote_virtual_network_id            = local.virtual_networks_modules[dst_data.key].resource_id
           allow_virtual_network_access         = true
           allow_forwarded_traffic              = true
