@@ -3,14 +3,7 @@ output "spoke2_pip" {
   value      = azurerm_public_ip.spoke2.ip_address
 }
 
-output "testing" {
-  value = module.hub_mesh.testing
-}
 
-output "testing2" {
-  value = module.hub_mesh.testing2
-}
-
-output "testing3" {
-  value = module.hub_mesh.testing3
+output "testing1" {
+  value = module.hub_mesh.testing1
 }

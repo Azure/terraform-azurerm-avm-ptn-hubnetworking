@@ -56,19 +56,6 @@ output "virtual_networks" {
 }
 
 
-output "testing" {
-  value = local.indexed_hub_virtual_networks
-}
-
-output "testing2" {
-  value = local.hub_peering_map
-}
-
-output "testing3" {
-  description = "A curated output of the virtual networks created by this module."
-  value = {
-    for k, v in module.hub_firewalls : k => {
-      resource = v.resource.ip_configuration[0].private_ip_address
-    }
-  }
+output "testing1" {
+  value = local.user_route_map
 }

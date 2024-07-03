@@ -56,13 +56,14 @@ module "hub_virtual_networks" {
     dns_servers = each.value.dns_servers
   }
 
-  #  peerings = local.hub_peering_map[each.key]
   subnets = try(local.subnets_map[each.key], {})
+  tags    = each.value.tags
 }
 
 module "hub_virtual_network_peering" {
   for_each = local.hub_peering_map
   source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/peering"
+  version  = "0.2.3"
 
   virtual_network = {
     resource_id = each.value.virtual_network_id
@@ -84,11 +85,11 @@ module "hub_virtual_network_peering" {
 }
 
 resource "azurerm_route_table" "hub_routing" {
-  for_each = local.route_map
+  for_each = var.hub_virtual_networks
 
-  location                      = var.hub_virtual_networks[each.key].location
+  location                      = each.value.location
   name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name, "route-${each.key}")
-  resource_group_name           = try(azurerm_resource_group.rg[var.hub_virtual_networks[each.key].resource_group_name].name, var.hub_virtual_networks[each.key].resource_group_name)
+  resource_group_name           = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
   disable_bgp_route_propagation = false
   tags = (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
     avm_git_commit           = "f0e06dd2b71ff7fc285efa135471f3e2bcef7e7a"
@@ -99,46 +100,38 @@ resource "azurerm_route_table" "hub_routing" {
     avm_yor_name             = "hub_routing"
     avm_yor_trace            = "e942eb18-f7cd-481e-a3ba-0c7815c05857"
   } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
-
-  route {
-    address_prefix = "0.0.0.0/0"
-    name           = "internet"
-    next_hop_type  = "Internet"
-  }
-  dynamic "route" {
-    for_each = toset(each.value.mesh_routes)
-
-    content {
-      address_prefix         = route.value.address_prefix
-      name                   = route.value.name
-      next_hop_in_ip_address = route.value.next_hop_ip_address
-      next_hop_type          = route.value.next_hop_type
-    }
-  }
-  dynamic "route" {
-    for_each = toset(each.value.user_routes)
-
-    content {
-      address_prefix         = route.value.address_prefix
-      name                   = route.value.name
-      next_hop_in_ip_address = route.value.next_hop_ip_address
-      next_hop_type          = route.value.next_hop_type
-    }
-  }
 }
 
-resource "azurerm_subnet_route_table_association" "hub_routing_creat" {
-  for_each = local.subnet_route_table_association_map
+resource "azurerm_route" "default_route" {
+  for_each = var.hub_virtual_networks
 
-  route_table_id = each.value.route_table_id
-  subnet_id      = each.value.subnet_id
+  address_prefix         = "0.0.0.0/0"
+  name                   = "internet"
+  next_hop_type          = "Internet"
+  resource_group_name    = azurerm_route_table.hub_routing[each.key].resource_group_name
+  route_table_name       = azurerm_route_table.hub_routing[each.key].name
 }
 
-resource "azurerm_subnet_route_table_association" "hub_routing_external" {
-  for_each = local.subnet_external_route_table_association_map
+resource "azurerm_route" "mesh_routes" {
+  for_each = local.mesh_route_map
 
-  route_table_id = each.value.route_table_id
-  subnet_id      = each.value.subnet_id
+  address_prefix         = each.value.address_prefix
+  name                   = each.value.name
+  next_hop_type          = each.value.next_hop_type
+  resource_group_name    = azurerm_route_table.hub_routing[each.value.hub].resource_group_name
+  route_table_name       = azurerm_route_table.hub_routing[each.value.hub].name
+  next_hop_in_ip_address = each.value.next_hop_ip_address
+}
+
+resource "azurerm_route" "user_routes" {
+  for_each = local.user_route_map
+
+  address_prefix         = each.value.address_prefix
+  name                   = each.value.name
+  next_hop_type          = each.value.next_hop_type
+  resource_group_name    = azurerm_route_table.hub_routing[each.value.hub].resource_group_name
+  route_table_name       = azurerm_route_table.hub_routing[each.value.hub].name
+  next_hop_in_ip_address = each.value.next_hop_ip_address
 }
 
 module "hub_firewalls" {
@@ -229,7 +222,7 @@ resource "azurerm_subnet" "fw_management_subnet" {
   virtual_network_name = each.value.virtual_network_name
 
   depends_on = [
-    module.hub_virtual_networks
+    resource.azurerm_route.default_route
   ]
 }
 
@@ -238,6 +231,10 @@ resource "azurerm_subnet_route_table_association" "fw_subnet_routing_creat" {
 
   route_table_id = azurerm_route_table.hub_routing[each.key].id
   subnet_id      = azurerm_subnet.fw_subnet[each.key].id
+
+  depends_on = [
+    resource.azurerm_route.default_route
+  ]
 }
 
 resource "azurerm_subnet_route_table_association" "fw_subnet_routing_external" {
@@ -245,6 +242,9 @@ resource "azurerm_subnet_route_table_association" "fw_subnet_routing_external" {
 
   route_table_id = each.value.subnet_route_table_id
   subnet_id      = azurerm_subnet.fw_subnet[each.key].id
+  depends_on = [
+    module.hub_virtual_networks
+  ]
 }
 
 #resource "azurerm_firewall" "fw" {

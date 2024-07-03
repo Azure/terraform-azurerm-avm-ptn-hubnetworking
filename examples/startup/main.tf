@@ -1,5 +1,5 @@
 locals {
-  regions = toset(["eastus", "eastus2"])
+  regions = toset(["eastus", "eastus2", "westus2"])
 }
 
 resource "azurerm_resource_group" "hub_rg" {
@@ -22,14 +22,27 @@ module "hub_mesh" {
       resource_group_creation_enabled = false
       resource_group_lock_enabled     = false
       mesh_peering_enabled            = true
-      route_table_name                = "contosohotel-eastus-hub-rt"
+      route_table_name                = "contosohotel-eastus-hub-rt2"
       routing_address_space           = ["10.0.0.0/16", "192.168.0.0/24"]
-      #      hub_router_ip_address           = "10.0.1.1"
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
         firewall_policy_id    = azurerm_firewall_policy.fwpolicy.id
+      }
+      subnets = {
+        hub1-subnet1 = {
+          name             = "hub1-subnet1"
+          address_prefixes = ["10.0.101.0/24"]
+        }
+        hub1-subnet2 = {
+          name             = "hub1-subnet2"
+          address_prefixes = ["10.0.102.0/24"]
+        }
+        testing = {
+          name             = "hub1-test"
+          address_prefixes = ["10.0.103.0/24"]
+        }
       }
     }
     eastus2-hub = {
@@ -39,14 +52,45 @@ module "hub_mesh" {
       resource_group_name             = azurerm_resource_group.hub_rg["eastus2"].name
       resource_group_creation_enabled = false
       resource_group_lock_enabled     = false
-      mesh_peering_enabled            = true
-      route_table_name                = "contoso-eastus2-hub-rt"
+      mesh_peering_enabled            = false
+      route_table_name                = "contoso-eastus2-hub-rt2"
       routing_address_space           = ["10.1.0.0/16", "192.168.1.0/24"]
-      hub_router_ip_address           = "10.1.1.1"
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.1.1.0/24"
+        firewall_policy_id    = azurerm_firewall_policy.fwpolicy.id
+      }
+      route_table_entries = [{
+        name           = "testing1"
+        address_prefix = "10.1.10.0/24"
+        next_hop_type  = "VirtualAppliance"
+
+        has_bgp_override    = false
+        next_hop_ip_address = "10.1.0.4"
+      }, {
+        name           = "testing2"
+        address_prefix = "10.1.20.0/24"
+        next_hop_type  = "VirtualAppliance"
+
+        has_bgp_override    = false
+        next_hop_ip_address = "10.1.0.4"
+      }]
+    }
+    westus2-hub = {
+      name                            = "westus2-hub"
+      address_space                   = ["10.2.0.0/16"]
+      location                        = "westus2"
+      resource_group_name             = azurerm_resource_group.hub_rg["westus2"].name
+      resource_group_creation_enabled = false
+      resource_group_lock_enabled     = false
+      mesh_peering_enabled            = true
+      route_table_name                = "contoso-westus2-hub-rt2"
+      routing_address_space           = ["10.2.0.0/16", "192.168.2.0/24"]
+      firewall = {
+        sku_name              = "AZFW_VNet"
+        sku_tier              = "Standard"
+        subnet_address_prefix = "10.2.1.0/24"
         firewall_policy_id    = azurerm_firewall_policy.fwpolicy.id
       }
     }
