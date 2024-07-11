@@ -28,7 +28,9 @@ module "hub_mesh" {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
-        firewall_policy_id    = azurerm_firewall_policy.fwpolicy.id
+        tags                  = {
+          afw = "testing"
+        }
       }
       subnets = {
         hub1-subnet1 = {
@@ -58,6 +60,7 @@ module "hub_mesh" {
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
+        name                  = "testing-afw"
         subnet_address_prefix = "10.1.1.0/24"
         firewall_policy_id    = azurerm_firewall_policy.fwpolicy.id
       }

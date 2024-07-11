@@ -15,15 +15,7 @@ resource "azurerm_resource_group" "rg" {
 
   location = each.value.location
   name     = each.key
-  tags = merge(each.value.tags, (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
-    avm_git_commit           = "2c089a3ac8972bdb97f6de5665678299705fa853"
-    avm_git_file             = "main.tf"
-    avm_git_last_modified_at = "2023-02-08 02:04:55"
-    avm_git_org              = "Azure"
-    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
-    avm_yor_name             = "rg"
-    avm_yor_trace            = "f48a6bb9-e2a2-47dc-8663-511a0ff70c96"
-  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/))
+  tags     = each.value.tags
 }
 
 resource "azurerm_management_lock" "rg_lock" {
@@ -91,15 +83,7 @@ resource "azurerm_route_table" "hub_routing" {
   name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name, "route-${each.key}")
   resource_group_name           = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
   disable_bgp_route_propagation = false
-  tags = (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
-    avm_git_commit           = "f0e06dd2b71ff7fc285efa135471f3e2bcef7e7a"
-    avm_git_file             = "main.tf"
-    avm_git_last_modified_at = "2023-07-04 10:14:08"
-    avm_git_org              = "Azure"
-    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
-    avm_yor_name             = "hub_routing"
-    avm_yor_trace            = "e942eb18-f7cd-481e-a3ba-0c7815c05857"
-  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
+  tags = each.value.tags
 }
 
 resource "azurerm_route" "default_route" {
@@ -149,11 +133,11 @@ module "hub_firewalls" {
     public_ip_address_id = azurerm_public_ip.fw_default_ip_configuration_pip[each.key].id
     subnet_id            = azurerm_subnet.fw_subnet[each.key].id
   }]
-#  firewall_management_ip_configuration = {
-#    name                 = each.value.management_ip_configuration.name
-#    public_ip_address_id = azurerm_public_ip.fw_management_ip_configuration_pip[each.key].id
-#    subnet_id            = azurerm_subnet.fw_management_subnet[each.key].id
-#  }
+  firewall_management_ip_configuration = each.value.sku_tier != "Basic" ? null : {
+    name                 = each.value.management_ip_configuration.name
+    public_ip_address_id = azurerm_public_ip.fw_management_ip_configuration_pip[each.key].id
+    subnet_id            = try(azurerm_subnet.fw_management_subnet[each.key].id, null)
+  }
   firewall_policy_id                   = each.value.firewall_policy_id
   firewall_private_ip_ranges           = each.value.private_ip_ranges
   firewall_zones                       = each.value.zones
@@ -170,16 +154,8 @@ resource "azurerm_public_ip" "fw_default_ip_configuration_pip" {
   ip_version          = each.value.ip_version
   sku                 = "Standard"
   sku_tier            = each.value.sku_tier
-  tags = (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
-    avm_git_commit           = "9d2530df182c2a04d3e065d6312cf623482769da"
-    avm_git_file             = "main.tf"
-    avm_git_last_modified_at = "2023-03-07 01:43:45"
-    avm_git_org              = "Azure"
-    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
-    avm_yor_name             = "fw_default_ip_configuration_pip"
-    avm_yor_trace            = "ae85c6f7-49d4-439c-9fcc-028654adce39"
-  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
-  zones = each.value.zones
+  tags                = each.value.tags
+  zones               = each.value.zones
 }
 
 resource "azurerm_public_ip" "fw_management_ip_configuration_pip" {
@@ -192,16 +168,8 @@ resource "azurerm_public_ip" "fw_management_ip_configuration_pip" {
   ip_version          = each.value.ip_version
   sku                 = "Standard"
   sku_tier            = each.value.sku_tier
-  tags = (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
-    avm_git_commit           = "a5adfe3141080bef44f5b5d71806635ef562f63b"
-    avm_git_file             = "main.tf"
-    avm_git_last_modified_at = "2023-08-08 19:29:32"
-    avm_git_org              = "Azure"
-    avm_git_repo             = "terraform-azurerm-avm-ptn-hubnetworking"
-    avm_yor_name             = "fw_management_ip_configuration_pip"
-    avm_yor_trace            = "cba83cdf-25a4-43ed-9b79-69c8da133abc"
-  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/)
-  zones = each.value.zones
+  tags                = each.value.tags
+  zones               = each.value.zones
 }
 
 resource "azurerm_subnet" "fw_subnet" {

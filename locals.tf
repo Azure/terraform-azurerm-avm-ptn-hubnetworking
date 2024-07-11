@@ -36,18 +36,20 @@ locals {
       resource_group_name = vnet.resource_group_name
       ip_version          = try(vnet.firewall.default_ip_configuration.public_ip_config.ip_version, "IPv4")
       sku_tier            = try(vnet.firewall.default_ip_configuration.public_ip_config.sku_tier, "Regional")
+      tags                = vnet.firewall.tags
       zones               = try(vnet.firewall.default_ip_configuration.public_ip_config.zones, null)
     } if vnet.firewall != null
   }
   fw_management_ip_configuration_pip = {
-    for k, v in var.hub_virtual_networks : k => {
-      location            = v.location
-      name                = try(v.firewall.management_ip_configuration.public_ip_config.name, "pip-afw-mgmt-${k}")
-      resource_group_name = v.resource_group_name
-      ip_version          = try(v.firewall.management_ip_coniguration.public_ip_config.ip_version, "IPv4")
-      sku_tier            = try(v.firewall.management_ip_coniguration.public_ip_config.sku_tier, "Regional")
-      zones               = try(v.firewall.management_ip_coniguration.public_ip_config.zones, null)
-    } if try(v.firewall.sku_tier, "FirewallNull") == "Basic" && v.firewall != null
+    for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
+      location            = vnet.location
+      name                = try(vnet.firewall.management_ip_configuration.public_ip_config.name, "pip-afw-mgmt-${vnet_name}")
+      resource_group_name = vnet.resource_group_name
+      ip_version          = try(vnet.firewall.management_ip_coniguration.public_ip_config.ip_version, "IPv4")
+      sku_tier            = try(vnet.firewall.management_ip_coniguration.public_ip_config.sku_tier, "Regional")
+      tags                = vnet.firewall.tags
+      zones               = try(vnet.firewall.management_ip_coniguration.public_ip_config.zones, null)
+    } if try(vnet.firewall.sku_tier, "FirewallNull") == "Basic" && vnet.firewall != null
   }
   indexed_hub_virtual_networks = [
     for k, v in var.hub_virtual_networks : {
