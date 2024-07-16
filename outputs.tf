@@ -57,5 +57,5 @@ output "virtual_networks" {
 
 
 output "testing1" {
-  value = local.user_route_map
+  value = local.subnets_map
 }

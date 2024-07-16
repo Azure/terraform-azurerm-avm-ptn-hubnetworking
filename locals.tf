@@ -149,12 +149,12 @@ locals {
         address_prefixes                              = subnet.address_prefixes
         nat_gateway                                   = subnet.nat_gateway
         network_security_group                        = subnet.network_security_group
-        private_endpoint_network_policies_enabled     = subnet.private_endpoint_network_policies_enabled
+        private_endpoint_network_policies             = subnet.private_endpoint_network_policies_enabled ? "Enabled" : "Disabled"
         private_link_service_network_policies_enabled = subnet.private_link_service_network_policies_enabled
         service_endpoints                             = subnet.service_endpoints
         service_endpoint_policy_ids                   = subnet.service_endpoint_policy_ids
-        delegations                                   = subnet.delegations
-        route_table                                   = { id = subnet.assign_generated_route_table ? resource.azurerm_route_table.hub_routing[k].id : subnet.assign_generated_route_table ? subnet.external_route_table_id : null }
+        delegation                                    = subnet.delegations
+        route_table                                   = subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id: subnet.external_route_table_id } : null
       }
     }
   }

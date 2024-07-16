@@ -31,19 +31,39 @@ module "hub_mesh" {
         tags                  = {
           afw = "testing"
         }
+        threat_intel_mode     = "Alert"
+        management_ip_configuration = {
+          public_ip_config = {
+            name      = "piptest-mgmt-afw-ip2"
+            ip_version = "IPv4"
+            sku_tier  = "Regional"
+          }
+        }
+        private_ip_ranges     = ["10.0.30.0/24"]
       }
       subnets = {
         hub1-subnet1 = {
           name             = "hub1-subnet1"
           address_prefixes = ["10.0.101.0/24"]
+          delegations      = [{
+            name               = "hub1-subnet1-delegation"
+            service_delegation = {
+              name    = "Microsoft.ContainerInstance/containerGroups"
+              actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+            }
+          }]
         }
         hub1-subnet2 = {
           name             = "hub1-subnet2"
           address_prefixes = ["10.0.102.0/24"]
+          private_endpoint_network_policies_enabled = false
         }
         testing = {
           name             = "hub1-test"
           address_prefixes = ["10.0.103.0/24"]
+          assign_generated_route_table = false
+          network_security_group = { id: "/subscriptions/0c15f894-52b9-4235-934c-cbf36d0bc286/resourcegroups/fwpolicy-hopeful-seasnail/providers/Microsoft.Network/networkSecurityGroups/testing-nsg" }
+          external_route_table_id = "/subscriptions/0c15f894-52b9-4235-934c-cbf36d0bc286/resourceGroups/fwpolicy-hopeful-seasnail/providers/Microsoft.Network/routeTables/testing-rt"
         }
       }
     }
@@ -63,6 +83,7 @@ module "hub_mesh" {
         name                  = "testing-afw"
         subnet_address_prefix = "10.1.1.0/24"
         firewall_policy_id    = azurerm_firewall_policy.fwpolicy.id
+        threat_intel_mode     = "Deny"
       }
       route_table_entries = [{
         name           = "testing1"
@@ -90,11 +111,12 @@ module "hub_mesh" {
       mesh_peering_enabled            = true
       route_table_name                = "contoso-westus2-hub-rt2"
       routing_address_space           = ["10.2.0.0/16", "192.168.2.0/24"]
-      firewall = {
-        sku_name              = "AZFW_VNet"
-        sku_tier              = "Standard"
-        subnet_address_prefix = "10.2.1.0/24"
-        firewall_policy_id    = azurerm_firewall_policy.fwpolicy.id
+      hub_router_ip_address           = "10.2.101.4"
+      subnets = {
+        hub1-subnet1 = {
+          name             = "hub3-subnet1"
+          address_prefixes = ["10.2.101.0/24"]
+        }
       }
     }
   }

@@ -194,7 +194,7 @@ resource "azurerm_subnet" "fw_management_subnet" {
   ]
 }
 
-resource "azurerm_subnet_route_table_association" "fw_subnet_routing_creat" {
+resource "azurerm_subnet_route_table_association" "fw_subnet_routing_create" {
   for_each = { for vnet_name, fw in local.firewalls : vnet_name => fw if fw.subnet_route_table_id == null }
 
   route_table_id = azurerm_route_table.hub_routing[each.key].id
