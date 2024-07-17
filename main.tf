@@ -9,6 +9,8 @@ locals {
   }
 }
 
+# subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
+
 # Create rgs as defined by var.hub_networks
 resource "azurerm_resource_group" "rg" {
   for_each = { for rg in local.resource_group_data : rg.name => rg }
@@ -83,17 +85,17 @@ resource "azurerm_route_table" "hub_routing" {
   name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name, "route-${each.key}")
   resource_group_name           = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
   disable_bgp_route_propagation = false
-  tags = each.value.tags
+  tags                          = each.value.tags
 }
 
 resource "azurerm_route" "default_route" {
   for_each = var.hub_virtual_networks
 
-  address_prefix         = "0.0.0.0/0"
-  name                   = "internet"
-  next_hop_type          = "Internet"
-  resource_group_name    = azurerm_route_table.hub_routing[each.key].resource_group_name
-  route_table_name       = azurerm_route_table.hub_routing[each.key].name
+  address_prefix      = "0.0.0.0/0"
+  name                = "internet"
+  next_hop_type       = "Internet"
+  resource_group_name = azurerm_route_table.hub_routing[each.key].resource_group_name
+  route_table_name    = azurerm_route_table.hub_routing[each.key].name
 }
 
 resource "azurerm_route" "mesh_routes" {
@@ -123,29 +125,31 @@ module "hub_firewalls" {
   source   = "Azure/avm-res-network-azurefirewall/azurerm"
   version  = "0.2.0"
 
-  firewall_sku_name                    = each.value.sku_name
-  firewall_sku_tier                    = each.value.sku_tier
-  location                             = var.hub_virtual_networks[each.key].location
-  name                                 = each.value.name
-  resource_group_name                  = var.hub_virtual_networks[each.key].resource_group_name
-  firewall_ip_configuration            = [{
+  firewall_sku_name   = each.value.sku_name
+  firewall_sku_tier   = each.value.sku_tier
+  location            = var.hub_virtual_networks[each.key].location
+  name                = each.value.name
+  resource_group_name = var.hub_virtual_networks[each.key].resource_group_name
+  firewall_ip_configuration = [{
     name                 = each.value.default_ip_configuration.name
-    public_ip_address_id = azurerm_public_ip.fw_default_ip_configuration_pip[each.key].id
+    public_ip_address_id = module.fw_default_ips[each.key].public_ip_id
     subnet_id            = azurerm_subnet.fw_subnet[each.key].id
   }]
   firewall_management_ip_configuration = each.value.sku_tier != "Basic" ? null : {
     name                 = each.value.management_ip_configuration.name
-    public_ip_address_id = azurerm_public_ip.fw_management_ip_configuration_pip[each.key].id
+    public_ip_address_id = module.fw_management_ips[each.key].public_ip_id
     subnet_id            = try(azurerm_subnet.fw_management_subnet[each.key].id, null)
   }
-  firewall_policy_id                   = each.value.firewall_policy_id
-  firewall_private_ip_ranges           = each.value.private_ip_ranges
-  firewall_zones                       = each.value.zones
-  tags                                 = each.value.tags
+  firewall_policy_id         = each.value.firewall_policy_id
+  firewall_private_ip_ranges = each.value.private_ip_ranges
+  firewall_zones             = each.value.zones
+  tags                       = each.value.tags
 }
 
-resource "azurerm_public_ip" "fw_default_ip_configuration_pip" {
+module "fw_default_ips" {
   for_each = local.fw_default_ip_configuration_pip
+  source   = "Azure/avm-res-network-publicipaddress/azurerm"
+  version  = "0.1.2"
 
   allocation_method   = "Static"
   location            = each.value.location
@@ -158,8 +162,10 @@ resource "azurerm_public_ip" "fw_default_ip_configuration_pip" {
   zones               = each.value.zones
 }
 
-resource "azurerm_public_ip" "fw_management_ip_configuration_pip" {
+module "fw_management_ips" {
   for_each = local.fw_management_ip_configuration_pip
+  source   = "Azure/avm-res-network-publicipaddress/azurerm"
+  version  = "0.1.2"
 
   allocation_method   = "Static"
   location            = each.value.location

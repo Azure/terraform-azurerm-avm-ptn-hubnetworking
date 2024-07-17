@@ -28,25 +28,25 @@ module "hub_mesh" {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
-        tags                  = {
+        tags = {
           afw = "testing"
         }
-        threat_intel_mode     = "Alert"
+        threat_intel_mode = "Alert"
         management_ip_configuration = {
           public_ip_config = {
-            name      = "piptest-mgmt-afw-ip2"
+            name       = "piptest-mgmt-afw-ip2"
             ip_version = "IPv4"
-            sku_tier  = "Regional"
+            sku_tier   = "Regional"
           }
         }
-        private_ip_ranges     = ["10.0.30.0/24"]
+        private_ip_ranges = ["10.0.30.0/24"]
       }
       subnets = {
         hub1-subnet1 = {
           name             = "hub1-subnet1"
           address_prefixes = ["10.0.101.0/24"]
-          delegations      = [{
-            name               = "hub1-subnet1-delegation"
+          delegations = [{
+            name = "hub1-subnet1-delegation"
             service_delegation = {
               name    = "Microsoft.ContainerInstance/containerGroups"
               actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
@@ -54,16 +54,14 @@ module "hub_mesh" {
           }]
         }
         hub1-subnet2 = {
-          name             = "hub1-subnet2"
-          address_prefixes = ["10.0.102.0/24"]
+          name                                      = "hub1-subnet2"
+          address_prefixes                          = ["10.0.102.0/24"]
           private_endpoint_network_policies_enabled = false
         }
         testing = {
-          name             = "hub1-test"
-          address_prefixes = ["10.0.103.0/24"]
+          name                         = "hub1-test"
+          address_prefixes             = ["10.0.103.0/24"]
           assign_generated_route_table = false
-          network_security_group = { id: "/subscriptions/0c15f894-52b9-4235-934c-cbf36d0bc286/resourcegroups/fwpolicy-hopeful-seasnail/providers/Microsoft.Network/networkSecurityGroups/testing-nsg" }
-          external_route_table_id = "/subscriptions/0c15f894-52b9-4235-934c-cbf36d0bc286/resourceGroups/fwpolicy-hopeful-seasnail/providers/Microsoft.Network/routeTables/testing-rt"
         }
       }
     }
@@ -92,7 +90,7 @@ module "hub_mesh" {
 
         has_bgp_override    = false
         next_hop_ip_address = "10.1.0.4"
-      }, {
+        }, {
         name           = "testing2"
         address_prefix = "10.1.20.0/24"
         next_hop_type  = "VirtualAppliance"

@@ -105,17 +105,17 @@ locals {
           if k_src != k_dst && v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0])
         ]
       ]
-    ]) : route.name => route 
+    ]) : route.name => route
   }
   user_route_map = {
     for route in flatten([
       for k_src, v_src in var.hub_virtual_networks : [
         for route_table_entry in v_src.route_table_entries : {
-            hub                 = k_src
-            name                = "${k_src}-${v_src.name}-${route_table_entry.name}"
-            address_prefix      = route_table_entry.address_prefix
-            next_hop_type       = route_table_entry.next_hop_type
-            next_hop_ip_address = route_table_entry.next_hop_ip_address
+          hub                 = k_src
+          name                = "${k_src}-${v_src.name}-${route_table_entry.name}"
+          address_prefix      = route_table_entry.address_prefix
+          next_hop_type       = route_table_entry.next_hop_type
+          next_hop_ip_address = route_table_entry.next_hop_ip_address
         }
       ]
     ]) : route.name => route
@@ -154,7 +154,7 @@ locals {
         service_endpoints                             = subnet.service_endpoints
         service_endpoint_policy_ids                   = subnet.service_endpoint_policy_ids
         delegation                                    = subnet.delegations
-        route_table                                   = subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id: subnet.external_route_table_id } : null
+        #        route_table                                   = subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
       }
     }
   }
