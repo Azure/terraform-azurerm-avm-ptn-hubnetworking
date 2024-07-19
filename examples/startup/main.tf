@@ -112,9 +112,27 @@ module "hub_mesh" {
       hub_router_ip_address           = "10.2.101.4"
       subnets = {
         hub1-subnet1 = {
-          name             = "hub3-subnet1"
-          address_prefixes = ["10.2.101.0/24"]
+          name                        = "hub3-subnet1"
+          address_prefixes            = ["10.2.101.0/24"]
+          service_endpoint_policy_ids = ["/subscriptions/0c15f894-52b9-4235-934c-cbf36d0bc286/resourcegroups/hubandspokedemo-hub-westus2-sensible-monkfish/providers/Microsoft.Network/serviceendpointpolicies/testingendpoint"]
+          service_endpoints           = ["Microsoft.Storage", "Microsoft.Sql"]
         }
+      }
+      firewall = {
+        sku_name                         = "AZFW_VNet"
+        sku_tier                         = "Basic"
+        name                             = "testing-afw"
+        subnet_address_prefix            = "10.2.1.0/24"
+        management_subnet_address_prefix = "10.2.2.0/24"
+        threat_intel_mode                = "Deny"
+        management_ip_configuration = {
+          public_ip_config = {
+            name       = "piptest-mgmt-afw-ip2"
+            ip_version = "IPv4"
+            sku_tier   = "Regional"
+          }
+        }
+        subnet_route_table_id = "/subscriptions/0c15f894-52b9-4235-934c-cbf36d0bc286/resourceGroups/hubandspokedemo-hub-westus2-sensible-monkfish/providers/Microsoft.Network/routeTables/testing-fw-route"
       }
     }
   }
@@ -142,6 +160,12 @@ resource "azurerm_firewall_policy" "fwpolicy" {
   name                = "allow-internal"
   resource_group_name = azurerm_resource_group.fwpolicy.name
   sku                 = "Standard"
+}
+
+resource "azurerm_route_table" "testing" {
+  location            = azurerm_resource_group.hub_rg["westus2"].location
+  name                = "testing-fw-route"
+  resource_group_name = azurerm_resource_group.hub_rg["westus2"].name
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "allow_internal" {

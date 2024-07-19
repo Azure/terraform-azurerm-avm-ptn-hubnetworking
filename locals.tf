@@ -142,6 +142,15 @@ locals {
       ]
     ]) : assoc.name => assoc
   }
+  service_endpoint_policy_map = {
+    for k, v in var.hub_virtual_networks : k => {
+      for subnetKey, subnet in v.subnets : subnetKey => {
+        for index, policy_id in tolist(subnet.service_endpoint_policy_ids) : index => {
+          id = policy_id
+        }
+      } if subnet.service_endpoint_policy_ids != null
+    }
+  }
   subnets_map = {
     for k, v in var.hub_virtual_networks : k => {
       for subnetKey, subnet in v.subnets : subnetKey => {
@@ -152,9 +161,9 @@ locals {
         private_endpoint_network_policies             = subnet.private_endpoint_network_policies_enabled ? "Enabled" : "Disabled"
         private_link_service_network_policies_enabled = subnet.private_link_service_network_policies_enabled
         service_endpoints                             = subnet.service_endpoints
-        service_endpoint_policy_ids                   = subnet.service_endpoint_policy_ids
+        service_endpoint_policies                     = try(local.service_endpoint_policy_map[k][subnetKey], null)
         delegation                                    = subnet.delegations
-        #        route_table                                   = subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
+        route_table                                   = subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
       }
     }
   }
