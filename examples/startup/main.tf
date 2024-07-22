@@ -1,5 +1,5 @@
 locals {
-  regions = toset(["eastus", "eastus2", "westus2"])
+  regions = toset(["eastus", "eastus2"])
 }
 
 resource "azurerm_resource_group" "hub_rg" {
@@ -28,41 +28,7 @@ module "hub_mesh" {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
-        tags = {
-          afw = "testing"
-        }
-        threat_intel_mode = "Alert"
-        management_ip_configuration = {
-          public_ip_config = {
-            name       = "piptest-mgmt-afw-ip2"
-            ip_version = "IPv4"
-            sku_tier   = "Regional"
-          }
-        }
-        private_ip_ranges = ["10.0.30.0/24"]
-      }
-      subnets = {
-        hub1-subnet1 = {
-          name             = "hub1-subnet1"
-          address_prefixes = ["10.0.101.0/24"]
-          delegations = [{
-            name = "hub1-subnet1-delegation"
-            service_delegation = {
-              name    = "Microsoft.ContainerInstance/containerGroups"
-              actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-            }
-          }]
-        }
-        hub1-subnet2 = {
-          name                                      = "hub1-subnet2"
-          address_prefixes                          = ["10.0.102.0/24"]
-          private_endpoint_network_policies_enabled = false
-        }
-        testing = {
-          name                         = "hub1-test"
-          address_prefixes             = ["10.0.103.0/24"]
-          assign_generated_route_table = false
-        }
+        firewall_policy_id    = module.fw_policy.resource_id
       }
     }
     eastus2-hub = {
@@ -78,66 +44,13 @@ module "hub_mesh" {
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
-        name                  = "testing-afw"
         subnet_address_prefix = "10.1.1.0/24"
-        firewall_policy_id    = azurerm_firewall_policy.fwpolicy.id
-        threat_intel_mode     = "Deny"
-      }
-      route_table_entries = [{
-        name           = "testing1"
-        address_prefix = "10.1.10.0/24"
-        next_hop_type  = "VirtualAppliance"
-
-        has_bgp_override    = false
-        next_hop_ip_address = "10.1.0.4"
-        }, {
-        name           = "testing2"
-        address_prefix = "10.1.20.0/24"
-        next_hop_type  = "VirtualAppliance"
-
-        has_bgp_override    = false
-        next_hop_ip_address = "10.1.0.4"
-      }]
-    }
-    westus2-hub = {
-      name                            = "westus2-hub"
-      address_space                   = ["10.2.0.0/16"]
-      location                        = "westus2"
-      resource_group_name             = azurerm_resource_group.hub_rg["westus2"].name
-      resource_group_creation_enabled = false
-      resource_group_lock_enabled     = false
-      mesh_peering_enabled            = true
-      route_table_name                = "contoso-westus2-hub-rt2"
-      routing_address_space           = ["10.2.0.0/16", "192.168.2.0/24"]
-      hub_router_ip_address           = "10.2.101.4"
-      subnets = {
-        hub1-subnet1 = {
-          name                        = "hub3-subnet1"
-          address_prefixes            = ["10.2.101.0/24"]
-          service_endpoint_policy_ids = ["/subscriptions/0c15f894-52b9-4235-934c-cbf36d0bc286/resourcegroups/hubandspokedemo-hub-westus2-sensible-monkfish/providers/Microsoft.Network/serviceendpointpolicies/testingendpoint"]
-          service_endpoints           = ["Microsoft.Storage", "Microsoft.Sql"]
-        }
-      }
-      firewall = {
-        sku_name                         = "AZFW_VNet"
-        sku_tier                         = "Basic"
-        name                             = "testing-afw"
-        subnet_address_prefix            = "10.2.1.0/24"
-        management_subnet_address_prefix = "10.2.2.0/24"
-        threat_intel_mode                = "Deny"
-        management_ip_configuration = {
-          public_ip_config = {
-            name       = "piptest-mgmt-afw-ip2"
-            ip_version = "IPv4"
-            sku_tier   = "Regional"
-          }
-        }
-        subnet_route_table_id = "/subscriptions/0c15f894-52b9-4235-934c-cbf36d0bc286/resourceGroups/hubandspokedemo-hub-westus2-sensible-monkfish/providers/Microsoft.Network/routeTables/testing-fw-route"
+        firewall_policy_id    = module.fw_policy.resource_id
       }
     }
   }
 
-  depends_on = [azurerm_firewall_policy_rule_collection_group.allow_internal]
+  depends_on = [module.fw_policy_rule_collection_groups]
 }
 
 resource "tls_private_key" "key" {
@@ -155,35 +68,35 @@ resource "azurerm_resource_group" "fwpolicy" {
   name     = "fwpolicy-${random_pet.rand.id}"
 }
 
-resource "azurerm_firewall_policy" "fwpolicy" {
+module "fw_policy" {
+  source  = "Azure/avm-res-network-firewallpolicy/azurerm"
+  version = "0.2.3"
+
   location            = azurerm_resource_group.fwpolicy.location
   name                = "allow-internal"
   resource_group_name = azurerm_resource_group.fwpolicy.name
-  sku                 = "Standard"
+  firewall_policy_sku = "Standard"
 }
 
-resource "azurerm_route_table" "testing" {
-  location            = azurerm_resource_group.hub_rg["westus2"].location
-  name                = "testing-fw-route"
-  resource_group_name = azurerm_resource_group.hub_rg["westus2"].name
-}
+module "fw_policy_rule_collection_groups" {
+  source  = "Azure/avm-res-network-firewallpolicy/azurerm//modules/rule_collection_groups"
+  version = "0.2.3"
 
-resource "azurerm_firewall_policy_rule_collection_group" "allow_internal" {
-  firewall_policy_id = azurerm_firewall_policy.fwpolicy.id
-  name               = "allow-rfc1918"
-  priority           = 100
+  firewall_policy_rule_collection_group_firewall_policy_id = module.fw_policy.resource_id
+  firewall_policy_rule_collection_group_name               = "allow-rfc1918"
+  firewall_policy_rule_collection_group_priority           = 100
 
-  network_rule_collection {
+  firewall_policy_rule_collection_group_network_rule_collection = [{
     action   = "Allow"
     name     = "rfc1918"
     priority = 100
 
-    rule {
+    rule = [{
       destination_ports     = ["*"]
       name                  = "rfc1918"
       protocols             = ["Any"]
       destination_addresses = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
       source_addresses      = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
-    }
-  }
+    }]
+  }]
 }

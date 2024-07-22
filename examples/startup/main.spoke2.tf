@@ -33,78 +33,76 @@ module "spoke2_vnet" {
       name             = "spoke2-subnet"
       address_prefixes = ["192.168.1.0/24"]
       route_table = {
-        id = azurerm_route_table.spoke2.id
+        id = module.route_table_spoke_2.resource_id
       }
     }
   }
 }
 
-resource "azurerm_route_table" "spoke2" {
+module "route_table_spoke_2" {
+  source  = "Azure/avm-res-network-routetable/azurerm"
+  version = "0.2.0"
+
   location            = azurerm_resource_group.spoke2.location
   name                = "spoke2-rt"
   resource_group_name = azurerm_resource_group.spoke2.name
-}
 
-resource "azurerm_route" "spoke2_to_hub" {
-  address_prefix         = "192.168.0.0/16"
-  name                   = "to-hub"
-  next_hop_type          = "VirtualAppliance"
-  resource_group_name    = azurerm_resource_group.spoke2.name
-  route_table_name       = azurerm_route_table.spoke2.name
-  next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus2-hub"].hub_router_ip_address
-}
-
-resource "azurerm_route" "spoke2_to_hub2" {
-  address_prefix         = "10.0.0.0/8"
-  name                   = "to-hub2"
-  next_hop_type          = "VirtualAppliance"
-  resource_group_name    = azurerm_resource_group.spoke2.name
-  route_table_name       = azurerm_route_table.spoke2.name
-  next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus2-hub"].hub_router_ip_address
-}
-
-resource "azurerm_public_ip" "spoke2" {
-  allocation_method   = "Static"
-  location            = azurerm_resource_group.spoke2.location
-  name                = "vm1-pip"
-  resource_group_name = azurerm_resource_group.spoke2.name
-}
-
-resource "azurerm_network_interface" "spoke2" {
-  #checkov:skip=CKV_AZURE_119:It's only for connectivity test
-  location            = azurerm_resource_group.spoke2.location
-  name                = "spoke2-machine-nic"
-  resource_group_name = azurerm_resource_group.spoke2.name
-
-  ip_configuration {
-    name                          = "nic"
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.spoke2.id
-    subnet_id                     = module.spoke2_vnet.subnets["spoke2-subnet"].resource_id
+  routes = {
+    spoke2_to_hub = {
+      address_prefix         = "192.168.0.0/16"
+      name                   = "to-hub"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus2-hub"].hub_router_ip_address
+    }
+    spoke2_to_hub2 = {
+      address_prefix         = "10.0.0.0/8"
+      name                   = "to-hub2"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus2-hub"].hub_router_ip_address
+    }
   }
 }
 
-resource "azurerm_linux_virtual_machine" "spoke2" {
-  #checkov:skip=CKV_AZURE_50:Only for connectivity test so we use vm extension
-  #checkov:skip=CKV_AZURE_179:Only for connectivity test so we use vm extension
-  admin_username = "adminuser"
-  location       = azurerm_resource_group.spoke2.location
-  name           = "spoke2-machine"
-  network_interface_ids = [
-    azurerm_network_interface.spoke2.id,
-  ]
-  resource_group_name = azurerm_resource_group.spoke2.name
-  size                = "Standard_B2ms"
+module "vm_spoke2" {
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version = "0.15.1"
 
-  os_disk {
+  location                           = azurerm_resource_group.spoke2.location
+  name                               = "spoke2-machine"
+  resource_group_name                = azurerm_resource_group.spoke2.name
+  zone                               = 1
+  admin_username                     = "adminuser"
+  generate_admin_password_or_ssh_key = false
+
+  admin_ssh_keys = [{
+    public_key = tls_private_key.key.public_key_openssh
+    username   = "adminuser"
+  }]
+
+  os_type  = "linux"
+  sku_size = "Standard_B2ms"
+
+  network_interfaces = {
+    network_interface_1 = {
+      name = "nic"
+      ip_configurations = {
+        ip_configurations_1 = {
+          name                          = "nic"
+          private_ip_address_allocation = "Dynamic"
+          private_ip_subnet_resource_id = module.spoke2_vnet.subnets["spoke2-subnet"].resource_id
+          create_public_ip_address      = true
+          public_ip_address_name        = "vm1-pip"
+        }
+      }
+    }
+  }
+
+  os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
-  admin_ssh_key {
-    public_key = tls_private_key.key.public_key_openssh
-    username   = "adminuser"
-  }
-  source_image_reference {
+
+  source_image_reference = {
     offer     = "0001-com-ubuntu-server-jammy"
     publisher = "Canonical"
     sku       = "22_04-lts"

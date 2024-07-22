@@ -50,8 +50,9 @@ module "hub_virtual_networks" {
     dns_servers = each.value.dns_servers
   }
 
-  subnets = try(local.subnets_map[each.key], {})
-  tags    = each.value.tags
+  subnets          = try(local.subnets_map[each.key], {})
+  tags             = each.value.tags
+  enable_telemetry = var.enable_telemetry
 }
 
 module "hub_virtual_network_peering" {
@@ -144,6 +145,7 @@ module "hub_firewalls" {
   firewall_private_ip_ranges = each.value.private_ip_ranges
   firewall_zones             = each.value.zones
   tags                       = each.value.tags
+  enable_telemetry           = var.enable_telemetry
 }
 
 module "fw_default_ips" {
@@ -160,6 +162,8 @@ module "fw_default_ips" {
   sku_tier            = each.value.sku_tier
   tags                = each.value.tags
   zones               = each.value.zones
+
+  enable_telemetry = var.enable_telemetry
 }
 
 module "fw_management_ips" {
@@ -176,6 +180,8 @@ module "fw_management_ips" {
   sku_tier            = each.value.sku_tier
   tags                = each.value.tags
   zones               = each.value.zones
+
+  enable_telemetry = var.enable_telemetry
 }
 
 resource "azurerm_subnet" "fw_subnet" {

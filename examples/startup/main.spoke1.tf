@@ -33,69 +33,74 @@ module "spoke1_vnet" {
       name             = "spoke1-subnet"
       address_prefixes = ["192.168.0.0/24"]
       route_table = {
-        id = azurerm_route_table.spoke1.id
+        id = module.route_table_spoke1.resource_id
       }
     }
   }
 }
 
-resource "azurerm_route_table" "spoke1" {
+module "route_table_spoke1" {
+  source  = "Azure/avm-res-network-routetable/azurerm"
+  version = "0.2.0"
+
   location            = azurerm_resource_group.spoke1.location
   name                = "spoke1-rt"
   resource_group_name = azurerm_resource_group.spoke1.name
-}
 
-resource "azurerm_route" "spoke1_to_hub" {
-  address_prefix         = "192.168.0.0/16"
-  name                   = "to-hub"
-  next_hop_type          = "VirtualAppliance"
-  resource_group_name    = azurerm_resource_group.spoke1.name
-  route_table_name       = azurerm_route_table.spoke1.name
-  next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus-hub"].hub_router_ip_address
-}
-
-resource "azurerm_route" "spoke1_to_hub2" {
-  address_prefix         = "10.0.0.0/8"
-  name                   = "to-hub2"
-  next_hop_type          = "VirtualAppliance"
-  resource_group_name    = azurerm_resource_group.spoke1.name
-  route_table_name       = azurerm_route_table.spoke1.name
-  next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus-hub"].hub_router_ip_address
-}
-
-resource "azurerm_network_interface" "spoke1" {
-  location            = azurerm_resource_group.spoke1.location
-  name                = "spoke1-machine-nic"
-  resource_group_name = azurerm_resource_group.spoke1.name
-
-  ip_configuration {
-    name                          = "internal"
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = module.spoke1_vnet.subnets["spoke1-subnet"].resource_id
+  routes = {
+    spoke1_to_hub = {
+      address_prefix         = "192.168.0.0/16"
+      name                   = "to-hub"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus-hub"].hub_router_ip_address
+    }
+    spoke1_to_hub2 = {
+      address_prefix         = "10.0.0.0/8"
+      name                   = "to-hub2"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus-hub"].hub_router_ip_address
+    }
   }
 }
 
-resource "azurerm_linux_virtual_machine" "spoke1" {
-  #checkov:skip=CKV_AZURE_50:Only for connectivity test so we use vm extension
-  #checkov:skip=CKV_AZURE_179:Only for connectivity test so we use vm extension
-  admin_username = "adminuser"
-  location       = azurerm_resource_group.spoke1.location
-  name           = "spoke1-machine"
-  network_interface_ids = [
-    azurerm_network_interface.spoke1.id,
-  ]
-  resource_group_name = azurerm_resource_group.spoke1.name
-  size                = "Standard_B2ms"
+module "vm_spoke1" {
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version = "0.15.1"
 
-  os_disk {
+  location                           = azurerm_resource_group.spoke1.location
+  name                               = "spoke1-machine"
+  resource_group_name                = azurerm_resource_group.spoke1.name
+  zone                               = 1
+  admin_username                     = "adminuser"
+  generate_admin_password_or_ssh_key = false
+
+  admin_ssh_keys = [{
+    public_key = tls_private_key.key.public_key_openssh
+    username   = "adminuser"
+  }]
+
+  os_type  = "linux"
+  sku_size = "Standard_B2ms"
+
+  network_interfaces = {
+    network_interface_1 = {
+      name = "internal"
+      ip_configurations = {
+        ip_configurations_1 = {
+          name                          = "internal"
+          private_ip_address_allocation = "Dynamic"
+          private_ip_subnet_resource_id = module.spoke1_vnet.subnets["spoke1-subnet"].resource_id
+        }
+      }
+    }
+  }
+
+  os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
-  admin_ssh_key {
-    public_key = tls_private_key.key.public_key_openssh
-    username   = "adminuser"
-  }
-  source_image_reference {
+
+  source_image_reference = {
     offer     = "0001-com-ubuntu-server-jammy"
     publisher = "Canonical"
     sku       = "22_04-lts"
