@@ -11,33 +11,42 @@ This module is designed to simplify the creation of multi-region hub networks in
 - This module will deploy `n` number of virtual networks and subnets.
 Optionally, these virtual networks can be peered in a mesh topology.
 - A routing address space can be specified for each hub network, this module will then create route tables for the other hub networks and associate them with the subnets.
-- Azure Firewall can be deployed iun each hub network. This module will configure routing for the AzureFirewallSubnet.
+- Azure Firewall can be deployed in each hub network. This module will configure routing for the AzureFirewallSubnet.
 
 ## Example
 
 ```terraform
-module "hubnetworks" {
-  source  = "Azure/hubnetworking/azure"
-  version = "<version>" # change this to your desired version, https://www.terraform.io/language/expressions/version-constraints
+resource "azurerm_resource_group" "rg" {
+  location = var.location
+  name     = "rg-hub-${var.suffix}"
+}
 
+module "hub" {
+  source = "../.."
   hub_virtual_networks = {
-    weu-hub = {
-      name                  = "vnet-prod-weu-0001"
-      address_space         = ["192.168.0.0/23"]
-      routing_address_space = ["192.168.0.0/20"]
+    hub = {
+      name                            = "hub-${var.suffix}"
+      address_space                   = ["10.0.0.0/16"]
+      location                        = var.location
+      resource_group_name             = azurerm_resource_group.rg.name
+      resource_group_creation_enabled = false
       firewall = {
-        subnet_address_prefix = "192.168.1.0/24"
-        sku_tier              = "Premium"
         sku_name              = "AZFW_VNet"
+        sku_tier              = "Standard"
+        subnet_address_prefix = "10.0.1.0/24"
+      }
+      subnets = {
+        server-subnet = {
+          name             = "server-subnet"
+          address_prefixes = ["10.0.101.0/24"]
+        }
       }
     }
   }
 }
 ```
 
-## Documentation
 <!-- markdownlint-disable MD033 -->
-
 ## Requirements
 
 The following requirements are needed by this module:
@@ -46,15 +55,38 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0)
 
-## Modules
+- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
-The following Modules are called:
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.6)
 
-### <a name="module_hub_virtual_networks"></a> [hub\_virtual\_networks](#module\_hub\_virtual\_networks)
+## Providers
 
-Source: Azure/subnets/azurerm
+The following providers are used by this module:
 
-Version: 1.0.0
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.7.0, < 4.0)
+
+- <a name="provider_modtm"></a> [modtm](#provider\_modtm) (~> 0.3)
+
+- <a name="provider_random"></a> [random](#provider\_random) (~> 3.6)
+
+## Resources
+
+The following resources are used by this module:
+
+- [azurerm_management_lock.rg_lock](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
+- [azurerm_resource_group.rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_route.default_route](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
+- [azurerm_route.mesh_routes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
+- [azurerm_route.user_routes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
+- [azurerm_route_table.hub_routing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route_table) (resource)
+- [azurerm_subnet.fw_management_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_subnet.fw_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_subnet_route_table_association.fw_subnet_routing_create](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
+- [azurerm_subnet_route_table_association.fw_subnet_routing_external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
+- [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
+- [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
+- [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -64,6 +96,16 @@ No required inputs.
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
+
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see https://aka.ms/avm/telemetryinfo.  
+If it is set to false, then no telemetry will be collected.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_hub_virtual_networks"></a> [hub\_virtual\_networks](#input\_hub\_virtual\_networks)
 
@@ -103,6 +145,7 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
 #### Subnets
 
 - `subnets` - (Optional) A map of subnets to create in the virtual network. The value is an object with the following fields:
+  - `name` - The name of the subnet.
   - `address_prefixes` - The IPv4 address prefixes to use for the subnet in CIDR format.
   - `nat_gateway` - (Optional) An object with the following fields:
     - `id` - The ID of the NAT Gateway which should be associated with the Subnet. Changing this forces a new resource to be created.
@@ -184,6 +227,7 @@ map(object({
 
     subnets = optional(map(object(
       {
+        name             = string
         address_prefixes = list(string)
         nat_gateway = optional(object({
           id = string
@@ -248,40 +292,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_tracing_tags_enabled"></a> [tracing\_tags\_enabled](#input\_tracing\_tags\_enabled)
-
-Description: Whether enable tracing tags that generated by BridgeCrew Yor.
-
-Type: `bool`
-
-Default: `false`
-
-### <a name="input_tracing_tags_prefix"></a> [tracing\_tags\_prefix](#input\_tracing\_tags\_prefix)
-
-Description: Default prefix for generated tracing tags
-
-Type: `string`
-
-Default: `"avm_"`
-
-## Resources
-
-The following resources are used by this module:
-
-- [azurerm_firewall.fw](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall) (resource)
-- [azurerm_management_lock.rg_lock](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_public_ip.fw_default_ip_configuration_pip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
-- [azurerm_public_ip.fw_management_ip_configuration_pip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
-- [azurerm_resource_group.rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_route_table.hub_routing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route_table) (resource)
-- [azurerm_subnet.fw_management_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet.fw_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet_route_table_association.fw_subnet_routing_creat](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
-- [azurerm_subnet_route_table_association.fw_subnet_routing_external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
-- [azurerm_subnet_route_table_association.hub_routing_creat](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
-- [azurerm_subnet_route_table_association.hub_routing_external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
-- [azurerm_virtual_network_peering.hub_peering](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network_peering) (resource)
-
 ## Outputs
 
 The following outputs are exported:
@@ -298,87 +308,50 @@ Description: A curated output of the route tables created by this module.
 
 Description: A curated output of the resource groups created by this module.
 
+### <a name="output_testing1"></a> [testing1](#output\_testing1)
+
+Description: n/a
+
 ### <a name="output_virtual_networks"></a> [virtual\_networks](#output\_virtual\_networks)
 
 Description: A curated output of the virtual networks created by this module.
 
-<!-- markdownlint-enable -->
-## Enable or disable tracing tags
+## Modules
 
-We're using [BridgeCrew Yor](https://github.com/bridgecrewio/yor) and [yorbox](https://github.com/lonegunmanb/yorbox) to help manage tags consistently across infrastructure as code (IaC) frameworks. In this module you might see tags like:
+The following Modules are called:
 
-```hcl
-resource "azurerm_resource_group" "rg" {
-  location = "eastus"
-  name     = random_pet.name
-  tags = merge(var.tags, (/*<box>*/ (var.tracing_tags_enabled ? { for k, v in /*</box>*/ {
-    avm_git_commit           = "3077cc6d0b70e29b6e106b3ab98cee6740c916f6"
-    avm_git_file             = "main.tf"
-    avm_git_last_modified_at = "2023-05-05 08:57:54"
-    avm_git_org              = "lonegunmanb"
-    avm_git_repo             = "terraform-yor-tag-test-module"
-    avm_yor_trace            = "a0425718-c57d-401c-a7d5-f3d88b2551a4"
-  } /*<box>*/ : replace(k, "avm_", var.tracing_tags_prefix) => v } : {}) /*</box>*/))
-}
-```
+### <a name="module_fw_default_ips"></a> [fw\_default\_ips](#module\_fw\_default\_ips)
 
-To enable tracing tags, set the variable to true:
+Source: Azure/avm-res-network-publicipaddress/azurerm
 
-```hcl
-module "example" {
-  source               = <module_source>
-  ...
-  tracing_tags_enabled = true
-}
-```
+Version: 0.1.2
 
-The `tracing_tags_enabled` is default to `false`.
+### <a name="module_fw_management_ips"></a> [fw\_management\_ips](#module\_fw\_management\_ips)
 
-To customize the prefix for your tracing tags, set the `tracing_tags_prefix` variable value in your Terraform configuration:
+Source: Azure/avm-res-network-publicipaddress/azurerm
 
-```hcl
-module "example" {
-  source              = <module_source>
-  ...
-  tracing_tags_prefix = "custom_prefix_"
-}
-```
+Version: 0.1.2
 
-The actual applied tags would be:
+### <a name="module_hub_firewalls"></a> [hub\_firewalls](#module\_hub\_firewalls)
 
-```text
-{
-  custom_prefix_git_commit           = "3077cc6d0b70e29b6e106b3ab98cee6740c916f6"
-  custom_prefix_git_file             = "main.tf"
-  custom_prefix_git_last_modified_at = "2023-05-05 08:57:54"
-  custom_prefix_git_org              = "lonegunmanb"
-  custom_prefix_git_repo             = "terraform-yor-tag-test-module"
-  custom_prefix_yor_trace            = "a0425718-c57d-401c-a7d5-f3d88b2551a4"
-}
-```
+Source: Azure/avm-res-network-azurefirewall/azurerm
 
-<!-- markdownlint-disable MD041 -->
-## Contributing
-<!-- markdownlint-enable -->
+Version: 0.2.0
 
-This project welcomes contributions and suggestions.
-Most contributions require you to agree to a Contributor License Agreement (CLA)
-declaring that you have the right to, and actually do, grant us the rights to use your contribution.
-For details, visit [https://cla.opensource.microsoft.com](https://cla.opensource.microsoft.com).
+### <a name="module_hub_virtual_network_peering"></a> [hub\_virtual\_network\_peering](#module\_hub\_virtual\_network\_peering)
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment).
-Simply follow the instructions provided by the bot.
-You will only need to do this once across all repos using our CLA.
+Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/peering
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+Version: 0.2.3
 
-## Trademarks
+### <a name="module_hub_virtual_networks"></a> [hub\_virtual\_networks](#module\_hub\_virtual\_networks)
 
-This project may contain trademarks or logos for projects, products, or services.
-Authorized use of Microsoft trademarks or logos is subject to and must follow Microsoft's Trademark & Brand Guidelines.
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+Source: Azure/avm-res-network-virtualnetwork/azurerm
+
+Version: 0.2.3
+
+<!-- markdownlint-disable-next-line MD041 -->
+## Data Collection
+
+The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
 <!-- END_TF_DOCS -->
