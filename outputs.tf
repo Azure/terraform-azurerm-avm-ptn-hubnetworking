@@ -54,8 +54,3 @@ output "virtual_networks" {
     }
   }
 }
-
-
-output "testing1" {
-  value = local.subnets_map
-}
