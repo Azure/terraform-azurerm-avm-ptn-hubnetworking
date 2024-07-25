@@ -35,12 +35,13 @@ resource "azurerm_management_lock" "rg_lock" {
 module "hub_virtual_networks" {
   for_each = var.hub_virtual_networks
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version  = "0.2.3"
+  version  = "0.3.0"
 
-  name                = each.value.name
-  address_space       = each.value.address_space
-  resource_group_name = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
-  location            = each.value.location
+  name                    = each.value.name
+  address_space           = each.value.address_space
+  resource_group_name     = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
+  location                = each.value.location
+  flow_timeout_in_minutes = each.value.flow_timeout_in_minutes
 
   ddos_protection_plan = each.value.ddos_protection_plan_id == null ? null : {
     id     = each.value.ddos_protection_plan_id
@@ -58,7 +59,7 @@ module "hub_virtual_networks" {
 module "hub_virtual_network_peering" {
   for_each = local.hub_peering_map
   source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/peering"
-  version  = "0.2.3"
+  version  = "0.3.0"
 
   virtual_network = {
     resource_id = each.value.virtual_network_id
@@ -180,6 +181,26 @@ module "fw_management_ips" {
   sku_tier            = each.value.sku_tier
   tags                = each.value.tags
   zones               = each.value.zones
+
+  enable_telemetry = var.enable_telemetry
+}
+
+module "fw_policies" {
+  for_each = local.fw_policies
+  source   = "Azure/avm-res-network-firewallpolicy/azurerm"
+  version  = "0.2.3"
+
+  name                                              = each.value.name
+  location                                          = var.hub_virtual_networks[each.key].location
+  resource_group_name                               = var.hub_virtual_networks[each.key].resource_group_name
+  firewall_policy_sku                               = each.value.sku
+  firewall_policy_auto_learn_private_ranges_enabled = each.value.auto_learn_private_ranges_enabled
+  firewall_policy_base_policy_id                    = each.value.base_policy_id
+  firewall_policy_dns                               = each.value.dns
+  firewall_policy_threat_intelligence_mode          = each.value.threat_intelligence_mode
+  firewall_policy_private_ip_ranges                 = each.value.private_ip_ranges
+  firewall_policy_threat_intelligence_allowlist     = each.value.threat_intelligence_allowlist
+  tags                                              = each.value.tags
 
   enable_telemetry = var.enable_telemetry
 }

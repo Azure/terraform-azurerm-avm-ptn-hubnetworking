@@ -171,6 +171,7 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
   - `sku_tier` - The tier of the SKU to use for the Azure Firewall. Possible values include `Basic`, `Standard`, `Premium`.
   - `subnet_address_prefix` - The IPv4 address prefix to use for the Azure Firewall subnet in CIDR format. Needs to be a part of the virtual network's address space.
   - `dns_servers` - (Optional) A list of DNS server IP addresses for the Azure Firewall.
+  - `dns_servers` - (Optional) A list of DNS server IP addresses for the Azure Firewall.
   - `firewall_policy_id` - (Optional) The resource id of the Azure Firewall Policy to associate with the Azure Firewall.
   - `management_subnet_address_prefix` - (Optional) The IPv4 address prefix to use for the Azure Firewall management subnet in CIDR format. Needs to be a part of the virtual network's address space.
   - `name` - (Optional) The name of the firewall resource. If not specified will use `afw-{vnetname}`.
@@ -193,6 +194,19 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
       - `zones` - (Optional) A list of availability zones to use for the public IP configuration. If not specified will be `null`.
       - `ip_version` - (Optional) The IP version to use for the public IP configuration. Possible values include `IPv4`, `IPv6`. If not specified will be `IPv4`.
       - `sku_tier` - (Optional) The SKU tier to use for the public IP configuration. Possible values include `Regional`, `Global`. If not specified will be `Regional`.
+  - `firewall_policy` - (Optional) An object with the following fields. Cannot be used with `firewall_policy_id`. If not specified the defaults below will be used:
+    - `name` - (Optional) The name of the firewall policy. If not specified will use `afw-policy-{vnetname}`.
+    - `sku` - (Optional) The SKU to use for the firewall policy. Possible values include `Standard`, `Premium`.
+    - `auto_learn_private_ranges_enabled` - (Optional) Should the firewall policy automatically learn private ranges? Default `false`.
+    - `base_policy_id` - (Optional) The resource id of the base policy to use for the firewall policy.
+    - `dns` - (Optional) An object with the following fields:
+      - `proxy_enabled` - (Optional) Should the DNS proxy be enabled for the firewall policy? Default `false`.
+      - `servers` - (Optional) A list of DNS server IP addresses for the firewall policy.
+    - `threat_intelligence_mode` - (Optional) The threat intelligence mode for the firewall policy. Possible values include `Alert`, `Deny`, `Off`.
+    - `private_ip_ranges` - (Optional) A list of private IP ranges to use for the firewall policy.
+    - `threat_intelligence_allowlist` - (Optional) An object with the following fields:
+      - `fqdns` - (Optional) A set of FQDNs to allowlist for threat intelligence.
+      - `ip_addresses` - (Optional) A set of IP addresses to allowlist for threat intelligence.
 
 Type:
 
@@ -260,7 +274,7 @@ map(object({
       sku_tier                         = string
       subnet_address_prefix            = string
       dns_servers                      = optional(list(string))
-      firewall_policy_id               = optional(string)
+      firewall_policy_id               = optional(string, null)
       management_subnet_address_prefix = optional(string, null)
       name                             = optional(string)
       private_ip_ranges                = optional(list(string))
@@ -286,6 +300,22 @@ map(object({
           zones      = optional(set(string))
         }))
       }))
+      firewall_policy = optional(object({
+        name                              = optional(string)
+        sku                               = optional(string, "Standard")
+        auto_learn_private_ranges_enabled = optional(bool)
+        base_policy_id                    = optional(string)
+        dns = optional(object({
+          proxy_enabled = optional(bool, false)
+          servers       = optional(list(string))
+        }))
+        threat_intelligence_mode = optional(string, "Alert")
+        private_ip_ranges        = optional(list(string))
+        threat_intelligence_allowlist = optional(object({
+          fqdns        = optional(set(string))
+          ip_addresses = optional(set(string))
+        }))
+      }))
     }))
   }))
 ```
@@ -308,10 +338,6 @@ Description: A curated output of the route tables created by this module.
 
 Description: A curated output of the resource groups created by this module.
 
-### <a name="output_testing1"></a> [testing1](#output\_testing1)
-
-Description: n/a
-
 ### <a name="output_virtual_networks"></a> [virtual\_networks](#output\_virtual\_networks)
 
 Description: A curated output of the virtual networks created by this module.
@@ -332,6 +358,12 @@ Source: Azure/avm-res-network-publicipaddress/azurerm
 
 Version: 0.1.2
 
+### <a name="module_fw_policies"></a> [fw\_policies](#module\_fw\_policies)
+
+Source: Azure/avm-res-network-firewallpolicy/azurerm
+
+Version: 0.2.3
+
 ### <a name="module_hub_firewalls"></a> [hub\_firewalls](#module\_hub\_firewalls)
 
 Source: Azure/avm-res-network-azurefirewall/azurerm
@@ -342,13 +374,13 @@ Version: 0.2.0
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/peering
 
-Version: 0.2.3
+Version: 0.3.0
 
 ### <a name="module_hub_virtual_networks"></a> [hub\_virtual\_networks](#module\_hub\_virtual\_networks)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.2.3
+Version: 0.3.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

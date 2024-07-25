@@ -51,6 +51,21 @@ locals {
       zones               = try(vnet.firewall.management_ip_coniguration.public_ip_config.zones, null)
     } if try(vnet.firewall.sku_tier, "FirewallNull") == "Basic" && vnet.firewall != null
   }
+  fw_policies = {
+    for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
+      name                              = try(vnet.firewall.firewall_policy.name, "afw-policy-${vnet_name}")
+      location                          = vnet.location
+      resource_group_name               = vnet.resource_group_name
+      sku                               = try(vnet.firewall.firewall_policy.sku, "Standard")
+      auto_learn_private_ranges_enabled = try(vnet.firewall.firewall_policy.auto_learn_private_ranges_enabled, null)
+      base_policy_id                    = try(vnet.firewall.firewall_policy.base_policy_id, null)
+      dns                               = try(vnet.firewall.firewall_policy.dns, null)
+      threat_intelligence_mode          = try(vnet.firewall.firewall_policy.threat_intelligence_mode, null)
+      private_ip_ranges                 = try(vnet.firewall.firewall_policy.private_ip_ranges, null)
+      threat_intelligence_allowlist     = try(vnet.firewall.firewall_policy.threat_intelligence_allowlist, null)
+      tags                              = vnet.firewall.tags
+    } if vnet.firewall.firewall_policy_id == null
+  }
   indexed_hub_virtual_networks = [
     for k, v in var.hub_virtual_networks : {
       key   = k
