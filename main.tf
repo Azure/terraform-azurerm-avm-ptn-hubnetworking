@@ -243,6 +243,7 @@ resource "azurerm_subnet_route_table_association" "fw_subnet_routing_external" {
 
   route_table_id = each.value.subnet_route_table_id
   subnet_id      = azurerm_subnet.fw_subnet[each.key].id
+
   depends_on = [
     module.hub_virtual_networks
   ]

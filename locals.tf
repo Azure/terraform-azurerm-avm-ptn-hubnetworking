@@ -66,12 +66,6 @@ locals {
       tags                              = vnet.firewall.tags
     } if vnet.firewall.firewall_policy_id == null
   }
-  indexed_hub_virtual_networks = [
-    for k, v in var.hub_virtual_networks : {
-      key   = k
-      value = v
-    }
-  ]
   hub_peering_map = {
     for peerconfig in flatten([
       for src_index, src_data in local.indexed_hub_virtual_networks :
@@ -97,15 +91,12 @@ locals {
       ] if src_data.value.mesh_peering_enabled
     ]) : peerconfig.name => peerconfig
   }
-  resource_group_data = toset([
+  indexed_hub_virtual_networks = [
     for k, v in var.hub_virtual_networks : {
-      name      = v.resource_group_name
-      location  = v.location
-      lock      = v.resource_group_lock_enabled
-      lock_name = v.resource_group_lock_name
-      tags      = v.resource_group_tags
-    } if v.resource_group_creation_enabled
-  ])
+      key   = k
+      value = v
+    }
+  ]
   mesh_route_map = {
     for route in flatten([
       for k_src, v_src in var.hub_virtual_networks : [
@@ -122,18 +113,23 @@ locals {
       ]
     ]) : route.name => route
   }
-  user_route_map = {
-    for route in flatten([
-      for k_src, v_src in var.hub_virtual_networks : [
-        for route_table_entry in v_src.route_table_entries : {
-          hub                 = k_src
-          name                = "${k_src}-${v_src.name}-${route_table_entry.name}"
-          address_prefix      = route_table_entry.address_prefix
-          next_hop_type       = route_table_entry.next_hop_type
-          next_hop_ip_address = route_table_entry.next_hop_ip_address
+  resource_group_data = toset([
+    for k, v in var.hub_virtual_networks : {
+      name      = v.resource_group_name
+      location  = v.location
+      lock      = v.resource_group_lock_enabled
+      lock_name = v.resource_group_lock_name
+      tags      = v.resource_group_tags
+    } if v.resource_group_creation_enabled
+  ])
+  service_endpoint_policy_map = {
+    for k, v in var.hub_virtual_networks : k => {
+      for subnetKey, subnet in v.subnets : subnetKey => {
+        for index, policy_id in tolist(subnet.service_endpoint_policy_ids) : index => {
+          id = policy_id
         }
-      ]
-    ]) : route.name => route
+      } if subnet.service_endpoint_policy_ids != null
+    }
   }
   subnet_external_route_table_association_map = {
     for assoc in flatten([
@@ -157,15 +153,6 @@ locals {
       ]
     ]) : assoc.name => assoc
   }
-  service_endpoint_policy_map = {
-    for k, v in var.hub_virtual_networks : k => {
-      for subnetKey, subnet in v.subnets : subnetKey => {
-        for index, policy_id in tolist(subnet.service_endpoint_policy_ids) : index => {
-          id = policy_id
-        }
-      } if subnet.service_endpoint_policy_ids != null
-    }
-  }
   subnets_map = {
     for k, v in var.hub_virtual_networks : k => {
       for subnetKey, subnet in v.subnets : subnetKey => {
@@ -181,6 +168,19 @@ locals {
         #        route_table                                   = subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
       }
     }
+  }
+  user_route_map = {
+    for route in flatten([
+      for k_src, v_src in var.hub_virtual_networks : [
+        for route_table_entry in v_src.route_table_entries : {
+          hub                 = k_src
+          name                = "${k_src}-${v_src.name}-${route_table_entry.name}"
+          address_prefix      = route_table_entry.address_prefix
+          next_hop_type       = route_table_entry.next_hop_type
+          next_hop_ip_address = route_table_entry.next_hop_ip_address
+        }
+      ]
+    ]) : route.name => route
   }
 }
 

@@ -1,3 +1,14 @@
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see https://aka.ms/avm/telemetryinfo.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "hub_virtual_networks" {
   type = map(object({
     name                            = string
@@ -214,15 +225,4 @@ DESCRIPTION
     condition     = length(var.hub_virtual_networks) > 0
     error_message = "At least one hub virtual network must be defined."
   }
-}
-
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module.
-For more information see https://aka.ms/avm/telemetryinfo.
-If it is set to false, then no telemetry will be collected.
-DESCRIPTION
-  nullable    = false
 }
