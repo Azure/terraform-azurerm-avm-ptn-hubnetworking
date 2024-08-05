@@ -166,18 +166,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_tls"></a> [tls](#requirement\_tls) (4.0.4)
 
-## Providers
-
-The following providers are used by this module:
-
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>=3.7.0, < 4.0)
-
-- <a name="provider_local"></a> [local](#provider\_local) (2.3.0)
-
-- <a name="provider_random"></a> [random](#provider\_random) (~> 3.0)
-
-- <a name="provider_tls"></a> [tls](#provider\_tls) (4.0.4)
-
 ## Resources
 
 The following resources are used by this module:
