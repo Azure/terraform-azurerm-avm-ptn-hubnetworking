@@ -10,19 +10,23 @@ locals {
 
 # Create rgs as defined by var.hub_networks
 resource "azurerm_resource_group" "rg" {
-  for_each = { for rg in local.resource_group_data : rg.name => rg }
+  for_each = { for rg in local.resource_group_data : rg.key => rg }
 
   location = each.value.location
-  name     = each.key
+  name     = each.value.name
   tags     = each.value.tags
 }
 
 resource "azurerm_management_lock" "rg_lock" {
-  for_each = { for r in local.resource_group_data : r.name => r if r.lock }
+  for_each = { for r in local.resource_group_data : r.key => r if r.lock }
 
   lock_level = "CanNotDelete"
-  name       = coalesce(each.value.lock_name, substr("lock-${each.key}", 0, 90))
+  name       = coalesce(each.value.lock_name, substr("lock-${each.value.name}", 0, 90))
   scope      = azurerm_resource_group.rg[each.key].id
+
+  depends_on = [
+    resource.azurerm_resource_group.rg
+  ]
 }
 
 # Module to create virtual networks and subnets
@@ -36,7 +40,7 @@ module "hub_virtual_networks" {
 
   name                    = each.value.name
   address_space           = each.value.address_space
-  resource_group_name     = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
+  resource_group_name     = try(azurerm_resource_group.rg[each.key].name, each.value.resource_group_name)
   location                = each.value.location
   flow_timeout_in_minutes = each.value.flow_timeout_in_minutes
 
@@ -51,6 +55,10 @@ module "hub_virtual_networks" {
   subnets          = local.subnets_map[each.key]
   tags             = each.value.tags
   enable_telemetry = var.enable_telemetry
+
+  depends_on = [
+    resource.azurerm_resource_group.rg
+  ]
 }
 
 module "hub_virtual_network_peering" {
@@ -84,24 +92,17 @@ module "hub_routing" {
 
   location                      = each.value.location
   name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name, "route-${each.key}")
-  resource_group_name           = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
+  resource_group_name           = try(azurerm_resource_group.rg[each.key].name, each.value.resource_group_name)
   disable_bgp_route_propagation = false
   tags                          = each.value.tags
 
   enable_telemetry = var.enable_telemetry
+
+  depends_on = [
+    resource.azurerm_resource_group.rg
+  ]
 }
 
-/*
-resource "azurerm_route_table" "hub_routing" {
-  for_each = var.hub_virtual_networks
-
-  location                      = each.value.location
-  name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name, "route-${each.key}")
-  resource_group_name           = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
-  disable_bgp_route_propagation = false
-  tags                          = each.value.tags
-}
-*/
 resource "azurerm_route" "default_route" {
   for_each = var.hub_virtual_networks
 
@@ -159,6 +160,10 @@ module "hub_firewalls" {
   firewall_zones             = each.value.zones
   tags                       = each.value.tags
   enable_telemetry           = var.enable_telemetry
+
+  depends_on = [
+    resource.azurerm_resource_group.rg
+  ]
 }
 
 module "fw_default_ips" {
@@ -177,6 +182,10 @@ module "fw_default_ips" {
   zones               = each.value.zones
 
   enable_telemetry = var.enable_telemetry
+
+  depends_on = [
+    resource.azurerm_resource_group.rg
+  ]
 }
 
 module "fw_management_ips" {
@@ -195,6 +204,10 @@ module "fw_management_ips" {
   zones               = each.value.zones
 
   enable_telemetry = var.enable_telemetry
+
+  depends_on = [
+    resource.azurerm_resource_group.rg
+  ]
 }
 
 module "fw_policies" {
@@ -215,6 +228,10 @@ module "fw_policies" {
   tags                                              = each.value.tags
 
   enable_telemetry = var.enable_telemetry
+
+  depends_on = [
+    resource.azurerm_resource_group.rg
+  ]
 }
 
 resource "azurerm_subnet" "fw_subnet" {

@@ -74,6 +74,7 @@ locals {
         for dst_index, dst_data in local.indexed_hub_virtual_networks :
         {
           name                                 = "${local.virtual_networks_modules[src_data.key].name}-${local.virtual_networks_modules[dst_data.key].name}"
+          key                                  = "${src_data.key}-${dst_data.key}"
           src_key                              = src_data.key
           dst_key                              = dst_data.key
           virtual_network_id                   = local.virtual_networks_modules[src_data.key].resource_id
@@ -90,7 +91,7 @@ locals {
           reverse_use_remote_gateways          = false
         } if src_index > dst_index && dst_data.value.mesh_peering_enabled
       ] if src_data.value.mesh_peering_enabled
-    ]) : peerconfig.name => peerconfig
+    ]) : peerconfig.key => peerconfig
   }
   indexed_hub_virtual_networks = [
     for k, v in var.hub_virtual_networks : {
@@ -102,8 +103,9 @@ locals {
     for route in flatten([
       for k_src, v_src in var.hub_virtual_networks : [
         for k_dst, v_dst in var.hub_virtual_networks : [
-          for cidr in v_dst.routing_address_space : {
+          for index, cidr in v_dst.routing_address_space : {
             hub                 = k_src
+            key                 = "${k_src}-${k_dst}-${index}"
             name                = "${k_src}-${k_dst}-${replace(cidr, "/", "-")}"
             address_prefix      = cidr
             next_hop_type       = "VirtualAppliance"
@@ -113,10 +115,11 @@ locals {
           if k_src != k_dst && v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0])
         ]
       ]
-    ]) : route.name => route
+    ]) : route.key => route
   }
   resource_group_data = toset([
     for k, v in var.hub_virtual_networks : {
+      key       = k
       name      = v.resource_group_name
       location  = v.location
       lock      = v.resource_group_lock_enabled
