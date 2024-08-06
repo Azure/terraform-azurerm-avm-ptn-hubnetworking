@@ -1,50 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Terraform Verified Module for multi-hub network architectures
+# Complete example for the AVM hub network module with peering mesh
 
-[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/Azure/terraform-azure-hubnetworking.svg)](http://isitmaintained.com/project/Azure/terraform-azure-hubnetworking "Average time to resolve an issue")
-[![Percentage of issues still open](http://isitmaintained.com/badge/open/Azure/terraform-azure-hubnetworking.svg)](http://isitmaintained.com/project/Azure/terraform-azure-hubnetworking "Percentage of issues still open")
-
-This module is designed to simplify the creation of multi-region hub networks in Azure. It will create a number of virtual networks and subnets, and optionally peer them together in a mesh topology with routing.
-
-## Features
-
-- This module will deploy `n` number of virtual networks and subnets.
-Optionally, these virtual networks can be peered in a mesh topology.
-- A routing address space can be specified for each hub network, this module will then create route tables for the other hub networks and associate them with the subnets.
-- Azure Firewall can be deployed in each hub network. This module will configure routing for the AzureFirewallSubnet.
-
-## Example
-
-```terraform
-resource "azurerm_resource_group" "rg" {
-  location = var.location
-  name     = "rg-hub-${var.suffix}"
-}
-
-module "hub" {
-  source = "../.."
-  hub_virtual_networks = {
-    hub = {
-      name                            = "hub-${var.suffix}"
-      address_space                   = ["10.0.0.0/16"]
-      location                        = var.location
-      resource_group_name             = azurerm_resource_group.rg.name
-      resource_group_creation_enabled = false
-      firewall = {
-        sku_name              = "AZFW_VNet"
-        sku_tier              = "Standard"
-        subnet_address_prefix = "10.0.1.0/24"
-      }
-      subnets = {
-        server-subnet = {
-          name             = "server-subnet"
-          address_prefixes = ["10.0.101.0/24"]
-        }
-      }
-    }
-  }
-}
-```
+This shows how to create and manage hub networks with AVMs with all options enabled to create a multi-region peering mesh hosting sample VMs.
 
 ```hcl
 locals {
@@ -77,7 +34,7 @@ module "hub_mesh" {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
-        #        firewall_policy_id    = module.fw_policy.resource_id
+        firewall_policy_id    = module.fw_policy.resource_id
       }
     }
     eastus2-hub = {
@@ -87,14 +44,14 @@ module "hub_mesh" {
       resource_group_name             = azurerm_resource_group.hub_rg["eastus2"].name
       resource_group_creation_enabled = false
       resource_group_lock_enabled     = false
-      mesh_peering_enabled            = false
+      mesh_peering_enabled            = true
       route_table_name                = "contoso-eastus2-hub-rt2"
       routing_address_space           = ["10.1.0.0/16", "192.168.1.0/24"]
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.1.1.0/24"
-        #        firewall_policy_id    = module.fw_policy.resource_id
+        firewall_policy_id    = module.fw_policy.resource_id
       }
     }
   }
@@ -253,8 +210,23 @@ Source: Azure/avm-res-compute-virtualmachine/azurerm
 
 Version: 0.15.1
 
+## Usage
+
+Ensure you have Terraform installed and the Azure CLI authenticated to your Azure subscription.
+
+Navigate to the directory containing this configuration and run:
+
+```
+terraform init
+terraform plan
+terraform apply
+```
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 
 The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+
+## AVM Versioning Notice
+
+Major version Zero (0.y.z) is for initial development. Anything MAY change at any time. The module SHOULD NOT be considered stable till at least it is major version one (1.0.0) or greater. Changes will always be via new versions being published and no changes will be made to existing published versions. For more details please go to https://semver.org/
 <!-- END_TF_DOCS -->

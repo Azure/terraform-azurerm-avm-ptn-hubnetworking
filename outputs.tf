@@ -14,11 +14,11 @@ output "firewalls" {
 output "hub_route_tables" {
   description = "A curated output of the route tables created by this module."
   value = {
-    for vnet_name, rt in azurerm_route_table.hub_routing : vnet_name => {
+    for vnet_name, rt in module.hub_routing : vnet_name => {
       name = rt.name
-      id   = rt.id
+      id   = rt.resource_id
       routes = [
-        for r in rt.route : {
+        for r in rt.routes : {
           name                   = r.name
           address_prefix         = r.address_prefix
           next_hop_type          = r.next_hop_type

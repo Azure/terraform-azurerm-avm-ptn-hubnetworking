@@ -68,7 +68,6 @@ The following resources are used by this module:
 - [azurerm_route.default_route](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
 - [azurerm_route.mesh_routes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
 - [azurerm_route.user_routes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
-- [azurerm_route_table.hub_routing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route_table) (resource)
 - [azurerm_subnet.fw_management_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.fw_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet_route_table_association.fw_subnet_routing_create](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
@@ -359,6 +358,12 @@ Version: 0.2.3
 Source: Azure/avm-res-network-azurefirewall/azurerm
 
 Version: 0.2.0
+
+### <a name="module_hub_routing"></a> [hub\_routing](#module\_hub\_routing)
+
+Source: Azure/avm-res-network-routetable/azurerm
+
+Version: 0.2.1
 
 ### <a name="module_hub_virtual_network_peering"></a> [hub\_virtual\_network\_peering](#module\_hub\_virtual\_network\_peering)
 

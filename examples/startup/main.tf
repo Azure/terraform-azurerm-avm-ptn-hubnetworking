@@ -28,7 +28,7 @@ module "hub_mesh" {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
-        #        firewall_policy_id    = module.fw_policy.resource_id
+        firewall_policy_id    = module.fw_policy.resource_id
       }
     }
     eastus2-hub = {
@@ -38,14 +38,14 @@ module "hub_mesh" {
       resource_group_name             = azurerm_resource_group.hub_rg["eastus2"].name
       resource_group_creation_enabled = false
       resource_group_lock_enabled     = false
-      mesh_peering_enabled            = false
+      mesh_peering_enabled            = true
       route_table_name                = "contoso-eastus2-hub-rt2"
       routing_address_space           = ["10.1.0.0/16", "192.168.1.0/24"]
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.1.1.0/24"
-        #        firewall_policy_id    = module.fw_policy.resource_id
+        firewall_policy_id    = module.fw_policy.resource_id
       }
     }
   }

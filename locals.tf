@@ -63,8 +63,9 @@ locals {
       threat_intelligence_mode          = try(vnet.firewall.firewall_policy.threat_intelligence_mode, null)
       private_ip_ranges                 = try(vnet.firewall.firewall_policy.private_ip_ranges, null)
       threat_intelligence_allowlist     = try(vnet.firewall.firewall_policy.threat_intelligence_allowlist, null)
+      firewall_policy_id                = try(vnet.firewall.firewall_policy.firewall_policy_id, null)
       tags                              = vnet.firewall.tags
-    } if vnet.firewall.firewall_policy_id == null
+    }
   }
   hub_peering_map = {
     for peerconfig in flatten([
@@ -107,6 +108,7 @@ locals {
             address_prefix      = cidr
             next_hop_type       = "VirtualAppliance"
             next_hop_ip_address = try(local.firewall_private_ip[k_dst], v_dst.hub_router_ip_address)
+            resource_group_name = v_src.resource_group_name
           }
           if k_src != k_dst && v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0])
         ]
@@ -131,28 +133,6 @@ locals {
       } if subnet.service_endpoint_policy_ids != null
     }
   }
-  subnet_external_route_table_association_map = {
-    for assoc in flatten([
-      for k, v in var.hub_virtual_networks : [
-        for subnetName, subnet in v.subnets : {
-          name           = "${k}-${subnetName}"
-          subnet_id      = lookup(local.virtual_networks_modules[k].subnets, subnetName)
-          route_table_id = subnet.external_route_table_id
-        } if subnet.external_route_table_id != null
-      ]
-    ]) : assoc.name => assoc
-  }
-  subnet_route_table_association_map = {
-    for assoc in flatten([
-      for k, v in var.hub_virtual_networks : [
-        for subnetName, subnet in v.subnets : {
-          name           = "${k}-${subnetName}"
-          subnet_id      = lookup(local.virtual_networks_modules[k].subnets, subnetName).resource_id
-          route_table_id = local.hub_routing[k].id
-        } if subnet.assign_generated_route_table
-      ]
-    ]) : assoc.name => assoc
-  }
   subnets_map = {
     for k, v in var.hub_virtual_networks : k => {
       for subnetKey, subnet in v.subnets : subnetKey => {
@@ -165,7 +145,7 @@ locals {
         service_endpoints                             = subnet.service_endpoints
         service_endpoint_policies                     = try(local.service_endpoint_policy_map[k][subnetKey], null)
         delegation                                    = subnet.delegations
-        #        route_table                                   = subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
+        route_table                                   = subnet.assign_generated_route_table ? { id = module.hub_routing[k].resource_id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
       }
     }
   }
@@ -178,6 +158,7 @@ locals {
           address_prefix      = route_table_entry.address_prefix
           next_hop_type       = route_table_entry.next_hop_type
           next_hop_ip_address = route_table_entry.next_hop_ip_address
+          resource_group_name = v_src.resource_group_name
         }
       ]
     ]) : route.name => route

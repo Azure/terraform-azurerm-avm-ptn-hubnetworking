@@ -1,7 +1,9 @@
 resource "azurerm_resource_group" "rg" {
   location = var.location
-  name     = "rg-hub-${var.suffix}"
+  name     = "hubdemo-hub-${var.suffix}-${random_pet.rand.id}"
 }
+
+resource "random_pet" "rand" {}
 
 module "hub" {
   source = "../.."

@@ -3,13 +3,10 @@ locals {
   firewall_private_ip = {
     for vnet_name, fw in module.hub_firewalls : vnet_name => fw.resource.ip_configuration[0].private_ip_address
   }
-  hub_routing = azurerm_route_table.hub_routing
   virtual_networks_modules = {
     for vnet_key, vnet_module in module.hub_virtual_networks : vnet_key => vnet_module
   }
 }
-
-# subnet.assign_generated_route_table ? { id = resource.azurerm_route_table.hub_routing[k].id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
 
 # Create rgs as defined by var.hub_networks
 resource "azurerm_resource_group" "rg" {
@@ -51,7 +48,7 @@ module "hub_virtual_networks" {
     dns_servers = each.value.dns_servers
   }
 
-  subnets          = try(local.subnets_map[each.key], {})
+  subnets          = local.subnets_map[each.key]
   tags             = each.value.tags
   enable_telemetry = var.enable_telemetry
 }
@@ -80,6 +77,21 @@ module "hub_virtual_network_peering" {
   reverse_use_remote_gateways          = each.value.reverse_use_remote_gateways
 }
 
+module "hub_routing" {
+  for_each = var.hub_virtual_networks
+  source   = "Azure/avm-res-network-routetable/azurerm"
+  version  = "0.2.1"
+
+  location                      = each.value.location
+  name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name, "route-${each.key}")
+  resource_group_name           = try(azurerm_resource_group.rg[each.value.resource_group_name].name, each.value.resource_group_name)
+  disable_bgp_route_propagation = false
+  tags                          = each.value.tags
+
+  enable_telemetry = var.enable_telemetry
+}
+
+/*
 resource "azurerm_route_table" "hub_routing" {
   for_each = var.hub_virtual_networks
 
@@ -89,15 +101,15 @@ resource "azurerm_route_table" "hub_routing" {
   disable_bgp_route_propagation = false
   tags                          = each.value.tags
 }
-
+*/
 resource "azurerm_route" "default_route" {
   for_each = var.hub_virtual_networks
 
   address_prefix      = "0.0.0.0/0"
   name                = "internet"
   next_hop_type       = "Internet"
-  resource_group_name = azurerm_route_table.hub_routing[each.key].resource_group_name
-  route_table_name    = azurerm_route_table.hub_routing[each.key].name
+  resource_group_name = each.value.resource_group_name
+  route_table_name    = module.hub_routing[each.key].name
 }
 
 resource "azurerm_route" "mesh_routes" {
@@ -106,8 +118,8 @@ resource "azurerm_route" "mesh_routes" {
   address_prefix         = each.value.address_prefix
   name                   = each.value.name
   next_hop_type          = each.value.next_hop_type
-  resource_group_name    = azurerm_route_table.hub_routing[each.value.hub].resource_group_name
-  route_table_name       = azurerm_route_table.hub_routing[each.value.hub].name
+  resource_group_name    = each.value.resource_group_name
+  route_table_name       = module.hub_routing[each.value.hub].name
   next_hop_in_ip_address = each.value.next_hop_ip_address
 }
 
@@ -117,8 +129,8 @@ resource "azurerm_route" "user_routes" {
   address_prefix         = each.value.address_prefix
   name                   = each.value.name
   next_hop_type          = each.value.next_hop_type
-  resource_group_name    = azurerm_route_table.hub_routing[each.value.hub].resource_group_name
-  route_table_name       = azurerm_route_table.hub_routing[each.value.hub].name
+  resource_group_name    = each.value.resource_group_name
+  route_table_name       = module.hub_routing[each.value.hub].name
   next_hop_in_ip_address = each.value.next_hop_ip_address
 }
 
@@ -186,7 +198,7 @@ module "fw_management_ips" {
 }
 
 module "fw_policies" {
-  for_each = local.fw_policies
+  for_each = { for vnet_name, fw in local.fw_policies : vnet_name => fw if fw.firewall_policy_id != null }
   source   = "Azure/avm-res-network-firewallpolicy/azurerm"
   version  = "0.2.3"
 
@@ -230,7 +242,7 @@ resource "azurerm_subnet" "fw_management_subnet" {
 resource "azurerm_subnet_route_table_association" "fw_subnet_routing_create" {
   for_each = { for vnet_name, fw in local.firewalls : vnet_name => fw if fw.subnet_route_table_id == null }
 
-  route_table_id = azurerm_route_table.hub_routing[each.key].id
+  route_table_id = module.hub_routing[each.key].resource_id
   subnet_id      = azurerm_subnet.fw_subnet[each.key].id
 
   depends_on = [
@@ -248,4 +260,3 @@ resource "azurerm_subnet_route_table_association" "fw_subnet_routing_external" {
     module.hub_virtual_networks
   ]
 }
-
