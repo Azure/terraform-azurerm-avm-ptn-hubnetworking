@@ -1,3 +1,14 @@
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see https://aka.ms/avm/telemetryinfo.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "hub_virtual_networks" {
   type = map(object({
     name                            = string
@@ -29,6 +40,7 @@ variable "hub_virtual_networks" {
 
     subnets = optional(map(object(
       {
+        name             = string
         address_prefixes = list(string)
         nat_gateway = optional(object({
           id = string
@@ -61,7 +73,7 @@ variable "hub_virtual_networks" {
       sku_tier                         = string
       subnet_address_prefix            = string
       dns_servers                      = optional(list(string))
-      firewall_policy_id               = optional(string)
+      firewall_policy_id               = optional(string, null)
       management_subnet_address_prefix = optional(string, null)
       name                             = optional(string)
       private_ip_ranges                = optional(list(string))
@@ -85,6 +97,22 @@ variable "hub_virtual_networks" {
           name       = optional(string)
           sku_tier   = optional(string, "Regional")
           zones      = optional(set(string))
+        }))
+      }))
+      firewall_policy = optional(object({
+        name                              = optional(string)
+        sku                               = optional(string, "Standard")
+        auto_learn_private_ranges_enabled = optional(bool)
+        base_policy_id                    = optional(string)
+        dns = optional(object({
+          proxy_enabled = optional(bool, false)
+          servers       = optional(list(string))
+        }))
+        threat_intelligence_mode = optional(string, "Alert")
+        private_ip_ranges        = optional(list(string))
+        threat_intelligence_allowlist = optional(object({
+          fqdns        = optional(set(string))
+          ip_addresses = optional(set(string))
         }))
       }))
     }))
@@ -127,6 +155,7 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
 #### Subnets
 
 - `subnets` - (Optional) A map of subnets to create in the virtual network. The value is an object with the following fields:
+  - `name` - The name of the subnet.
   - `address_prefixes` - The IPv4 address prefixes to use for the subnet in CIDR format.
   - `nat_gateway` - (Optional) An object with the following fields:
     - `id` - The ID of the NAT Gateway which should be associated with the Subnet. Changing this forces a new resource to be created.
@@ -152,6 +181,7 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
   - `sku_tier` - The tier of the SKU to use for the Azure Firewall. Possible values include `Basic`, ``Standard`, `Premium`.
   - `subnet_address_prefix` - The IPv4 address prefix to use for the Azure Firewall subnet in CIDR format. Needs to be a part of the virtual network's address space.
   - `dns_servers` - (Optional) A list of DNS server IP addresses for the Azure Firewall.
+  - `dns_servers` - (Optional) A list of DNS server IP addresses for the Azure Firewall.
   - `firewall_policy_id` - (Optional) The resource id of the Azure Firewall Policy to associate with the Azure Firewall.
   - `management_subnet_address_prefix` - (Optional) The IPv4 address prefix to use for the Azure Firewall management subnet in CIDR format. Needs to be a part of the virtual network's address space.
   - `name` - (Optional) The name of the firewall resource. If not specified will use `afw-{vnetname}`.
@@ -174,6 +204,19 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
       - `zones` - (Optional) A list of availability zones to use for the public IP configuration. If not specified will be `null`.
       - `ip_version` - (Optional) The IP version to use for the public IP configuration. Possible values include `IPv4`, `IPv6`. If not specified will be `IPv4`.
       - `sku_tier` - (Optional) The SKU tier to use for the public IP configuration. Possible values include `Regional`, `Global`. If not specified will be `Regional`.
+  - `firewall_policy` - (Optional) An object with the following fields. Cannot be used with `firewall_policy_id`. If not specified the defaults below will be used:
+    - `name` - (Optional) The name of the firewall policy. If not specified will use `afw-policy-{vnetname}`.
+    - `sku` - (Optional) The SKU to use for the firewall policy. Possible values include `Standard`, `Premium`.
+    - `auto_learn_private_ranges_enabled` - (Optional) Should the firewall policy automatically learn private ranges? Default `false`.
+    - `base_policy_id` - (Optional) The resource id of the base policy to use for the firewall policy.
+    - `dns` - (Optional) An object with the following fields:
+      - `proxy_enabled` - (Optional) Should the DNS proxy be enabled for the firewall policy? Default `false`.
+      - `servers` - (Optional) A list of DNS server IP addresses for the firewall policy.
+    - `threat_intelligence_mode` - (Optional) The threat intelligence mode for the firewall policy. Possible values include `Alert`, `Deny`, `Off`.
+    - `private_ip_ranges` - (Optional) A list of private IP ranges to use for the firewall policy.
+    - `threat_intelligence_allowlist` - (Optional) An object with the following fields:
+      - `fqdns` - (Optional) A set of FQDNs to allowlist for threat intelligence.
+      - `ip_addresses` - (Optional) A set of IP addresses to allowlist for threat intelligence.
 DESCRIPTION
   nullable    = false
 
@@ -182,20 +225,4 @@ DESCRIPTION
     condition     = length(var.hub_virtual_networks) > 0
     error_message = "At least one hub virtual network must be defined."
   }
-}
-
-# tflint-ignore: terraform_unused_declarations
-variable "tracing_tags_enabled" {
-  type        = bool
-  default     = false
-  description = "Whether enable tracing tags that generated by BridgeCrew Yor."
-  nullable    = false
-}
-
-# tflint-ignore: terraform_unused_declarations
-variable "tracing_tags_prefix" {
-  type        = string
-  default     = "avm_"
-  description = "Default prefix for generated tracing tags"
-  nullable    = false
 }

@@ -10,24 +10,35 @@ This module is designed to simplify the creation of multi-region hub networks in
 - This module will deploy `n` number of virtual networks and subnets.
 Optionally, these virtual networks can be peered in a mesh topology.
 - A routing address space can be specified for each hub network, this module will then create route tables for the other hub networks and associate them with the subnets.
-- Azure Firewall can be deployed iun each hub network. This module will configure routing for the AzureFirewallSubnet.
+- Azure Firewall can be deployed in each hub network. This module will configure routing for the AzureFirewallSubnet.
 
 ## Example
 
 ```terraform
-module "hubnetworks" {
-  source  = "Azure/hubnetworking/azure"
-  version = "<version>" # change this to your desired version, https://www.terraform.io/language/expressions/version-constraints
+resource "azurerm_resource_group" "rg" {
+  location = var.location
+  name     = "rg-hub-${var.suffix}"
+}
 
+module "hub" {
+  source = "../.."
   hub_virtual_networks = {
-    weu-hub = {
-      name                  = "vnet-prod-weu-0001"
-      address_space         = ["192.168.0.0/23"]
-      routing_address_space = ["192.168.0.0/20"]
+    hub = {
+      name                            = "hub-${var.suffix}"
+      address_space                   = ["10.0.0.0/16"]
+      location                        = var.location
+      resource_group_name             = azurerm_resource_group.rg.name
+      resource_group_creation_enabled = false
       firewall = {
-        subnet_address_prefix = "192.168.1.0/24"
-        sku_tier              = "Premium"
         sku_name              = "AZFW_VNet"
+        sku_tier              = "Standard"
+        subnet_address_prefix = "10.0.1.0/24"
+      }
+      subnets = {
+        server-subnet = {
+          name             = "server-subnet"
+          address_prefixes = ["10.0.101.0/24"]
+        }
       }
     }
   }
