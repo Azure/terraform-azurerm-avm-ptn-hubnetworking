@@ -11,24 +11,35 @@ This module is designed to simplify the creation of multi-region hub networks in
 - This module will deploy `n` number of virtual networks and subnets.
 Optionally, these virtual networks can be peered in a mesh topology.
 - A routing address space can be specified for each hub network, this module will then create route tables for the other hub networks and associate them with the subnets.
-- Azure Firewall can be deployed iun each hub network. This module will configure routing for the AzureFirewallSubnet.
+- Azure Firewall can be deployed in each hub network. This module will configure routing for the AzureFirewallSubnet.
 
 ## Example
 
 ```terraform
-module "hubnetworks" {
-  source  = "Azure/hubnetworking/azure"
-  version = "<version>" # change this to your desired version, https://www.terraform.io/language/expressions/version-constraints
+resource "azurerm_resource_group" "rg" {
+  location = var.location
+  name     = "rg-hub-${var.suffix}"
+}
 
+module "hub" {
+  source = "../.."
   hub_virtual_networks = {
-    weu-hub = {
-      name                  = "vnet-prod-weu-0001"
-      address_space         = ["192.168.0.0/23"]
-      routing_address_space = ["192.168.0.0/20"]
+    hub = {
+      name                            = "hub-${var.suffix}"
+      address_space                   = ["10.0.0.0/16"]
+      location                        = var.location
+      resource_group_name             = azurerm_resource_group.rg.name
+      resource_group_creation_enabled = false
       firewall = {
-        subnet_address_prefix = "192.168.1.0/24"
-        sku_tier              = "Premium"
         sku_name              = "AZFW_VNet"
+        sku_tier              = "Standard"
+        subnet_address_prefix = "10.0.1.0/24"
+      }
+      subnets = {
+        server-subnet = {
+          name             = "server-subnet"
+          address_prefixes = ["10.0.101.0/24"]
+        }
       }
     }
   }
@@ -44,27 +55,26 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0)
 
+- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
+
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.6)
+
 ## Resources
 
 The following resources are used by this module:
 
-- [azurerm_firewall.fw](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall) (resource)
 - [azurerm_management_lock.rg_lock](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_public_ip.fw_default_ip_configuration_pip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
-- [azurerm_public_ip.fw_management_ip_configuration_pip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) (resource)
 - [azurerm_resource_group.rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_route_table.hub_routing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route_table) (resource)
+- [azurerm_route.default_route](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
+- [azurerm_route.mesh_routes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
+- [azurerm_route.user_routes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
 - [azurerm_subnet.fw_management_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.fw_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet_route_table_association.fw_subnet_routing_creat](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
-- [azurerm_subnet_route_table_association.fw_subnet_routing_external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
-- [azurerm_subnet_route_table_association.hub_routing_creat](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
-- [azurerm_subnet_route_table_association.hub_routing_external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
-- [azurerm_virtual_network_peering.hub_peering](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network_peering) (resource)
-- [modtm_telemetry.telemetry](https://registry.terraform.io/providers/hashicorp/modtm/latest/docs/resources/telemetry) (resource)
+- [azurerm_subnet_route_table_association.fw_subnet_routing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
+- [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
-- [modtm_module_source.telemetry](https://registry.terraform.io/providers/hashicorp/modtm/latest/docs/data-sources/module_source) (data source)
+- [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -74,6 +84,16 @@ No required inputs.
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
+
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see https://aka.ms/avm/telemetryinfo.  
+If it is set to false, then no telemetry will be collected.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_hub_virtual_networks"></a> [hub\_virtual\_networks](#input\_hub\_virtual\_networks)
 
@@ -113,6 +133,7 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
 #### Subnets
 
 - `subnets` - (Optional) A map of subnets to create in the virtual network. The value is an object with the following fields:
+  - `name` - The name of the subnet.
   - `address_prefixes` - The IPv4 address prefixes to use for the subnet in CIDR format.
   - `nat_gateway` - (Optional) An object with the following fields:
     - `id` - The ID of the NAT Gateway which should be associated with the Subnet. Changing this forces a new resource to be created.
@@ -137,14 +158,12 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
   - `sku_name` - The name of the SKU to use for the Azure Firewall. Possible values include `AZFW_Hub`, `AZFW_VNet`.
   - `sku_tier` - The tier of the SKU to use for the Azure Firewall. Possible values include `Basic`, `Standard`, `Premium`.
   - `subnet_address_prefix` - The IPv4 address prefix to use for the Azure Firewall subnet in CIDR format. Needs to be a part of the virtual network's address space.
-  - `dns_servers` - (Optional) A list of DNS server IP addresses for the Azure Firewall.
   - `firewall_policy_id` - (Optional) The resource id of the Azure Firewall Policy to associate with the Azure Firewall.
   - `management_subnet_address_prefix` - (Optional) The IPv4 address prefix to use for the Azure Firewall management subnet in CIDR format. Needs to be a part of the virtual network's address space.
   - `name` - (Optional) The name of the firewall resource. If not specified will use `afw-{vnetname}`.
   - `private_ip_ranges` - (Optional) A list of private IP ranges to use for the Azure Firewall, to which the firewall will not NAT traffic. If not specified will use RFC1918.
   - `subnet_route_table_id` = (Optional) The resource id of the Route Table which should be associated with the Azure Firewall subnet. If not specified the module will assign the generated route table.
   - `tags` - (Optional) A map of tags to apply to the Azure Firewall. If not specified
-  - `threat_intel_mode` - (Optional) The threat intelligence mode for the Azure Firewall. Possible values include `Alert`, `Deny`, `Off`.
   - `zones` - (Optional) A list of availability zones to use for the Azure Firewall. If not specified will be `null`.
   - `default_ip_configuration` - (Optional) An object with the following fields. If not specified the defaults below will be used:
     - `name` - (Optional) The name of the default IP configuration. If not specified will use `default`.
@@ -160,6 +179,19 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
       - `zones` - (Optional) A list of availability zones to use for the public IP configuration. If not specified will be `null`.
       - `ip_version` - (Optional) The IP version to use for the public IP configuration. Possible values include `IPv4`, `IPv6`. If not specified will be `IPv4`.
       - `sku_tier` - (Optional) The SKU tier to use for the public IP configuration. Possible values include `Regional`, `Global`. If not specified will be `Regional`.
+  - `firewall_policy` - (Optional) An object with the following fields. Cannot be used with `firewall_policy_id`. If not specified the defaults below will be used:
+    - `name` - (Optional) The name of the firewall policy. If not specified will use `afw-policy-{vnetname}`.
+    - `sku` - (Optional) The SKU to use for the firewall policy. Possible values include `Standard`, `Premium`.
+    - `auto_learn_private_ranges_enabled` - (Optional) Should the firewall policy automatically learn private ranges? Default `false`.
+    - `base_policy_id` - (Optional) The resource id of the base policy to use for the firewall policy.
+    - `dns` - (Optional) An object with the following fields:
+      - `proxy_enabled` - (Optional) Should the DNS proxy be enabled for the firewall policy? Default `false`.
+      - `servers` - (Optional) A list of DNS server IP addresses for the firewall policy.
+    - `threat_intelligence_mode` - (Optional) The threat intelligence mode for the firewall policy. Possible values include `Alert`, `Deny`, `Off`.
+    - `private_ip_ranges` - (Optional) A list of private IP ranges to use for the firewall policy.
+    - `threat_intelligence_allowlist` - (Optional) An object with the following fields:
+      - `fqdns` - (Optional) A set of FQDNs to allowlist for threat intelligence.
+      - `ip_addresses` - (Optional) A set of IP addresses to allowlist for threat intelligence.
 
 Type:
 
@@ -194,6 +226,7 @@ map(object({
 
     subnets = optional(map(object(
       {
+        name             = string
         address_prefixes = list(string)
         nat_gateway = optional(object({
           id = string
@@ -225,14 +258,12 @@ map(object({
       sku_name                         = string
       sku_tier                         = string
       subnet_address_prefix            = string
-      dns_servers                      = optional(list(string))
-      firewall_policy_id               = optional(string)
+      firewall_policy_id               = optional(string, null)
       management_subnet_address_prefix = optional(string, null)
       name                             = optional(string)
       private_ip_ranges                = optional(list(string))
       subnet_route_table_id            = optional(string)
       tags                             = optional(map(string))
-      threat_intel_mode                = optional(string, "Alert")
       zones                            = optional(list(string))
       default_ip_configuration = optional(object({
         name = optional(string)
@@ -252,27 +283,27 @@ map(object({
           zones      = optional(set(string))
         }))
       }))
+      firewall_policy = optional(object({
+        name                              = optional(string)
+        sku                               = optional(string, "Standard")
+        auto_learn_private_ranges_enabled = optional(bool)
+        base_policy_id                    = optional(string)
+        dns = optional(object({
+          proxy_enabled = optional(bool, false)
+          servers       = optional(list(string))
+        }))
+        threat_intelligence_mode = optional(string, "Alert")
+        private_ip_ranges        = optional(list(string))
+        threat_intelligence_allowlist = optional(object({
+          fqdns        = optional(set(string))
+          ip_addresses = optional(set(string))
+        }))
+      }))
     }))
   }))
 ```
 
 Default: `{}`
-
-### <a name="input_tracing_tags_enabled"></a> [tracing\_tags\_enabled](#input\_tracing\_tags\_enabled)
-
-Description: Whether enable tracing tags that generated by BridgeCrew Yor.
-
-Type: `bool`
-
-Default: `false`
-
-### <a name="input_tracing_tags_prefix"></a> [tracing\_tags\_prefix](#input\_tracing\_tags\_prefix)
-
-Description: Default prefix for generated tracing tags
-
-Type: `string`
-
-Default: `"avm_"`
 
 ## Outputs
 
@@ -298,11 +329,47 @@ Description: A curated output of the virtual networks created by this module.
 
 The following Modules are called:
 
+### <a name="module_fw_default_ips"></a> [fw\_default\_ips](#module\_fw\_default\_ips)
+
+Source: Azure/avm-res-network-publicipaddress/azurerm
+
+Version: 0.1.2
+
+### <a name="module_fw_management_ips"></a> [fw\_management\_ips](#module\_fw\_management\_ips)
+
+Source: Azure/avm-res-network-publicipaddress/azurerm
+
+Version: 0.1.2
+
+### <a name="module_fw_policies"></a> [fw\_policies](#module\_fw\_policies)
+
+Source: Azure/avm-res-network-firewallpolicy/azurerm
+
+Version: 0.2.3
+
+### <a name="module_hub_firewalls"></a> [hub\_firewalls](#module\_hub\_firewalls)
+
+Source: Azure/avm-res-network-azurefirewall/azurerm
+
+Version: 0.2.2
+
+### <a name="module_hub_routing"></a> [hub\_routing](#module\_hub\_routing)
+
+Source: Azure/avm-res-network-routetable/azurerm
+
+Version: 0.2.2
+
+### <a name="module_hub_virtual_network_peering"></a> [hub\_virtual\_network\_peering](#module\_hub\_virtual\_network\_peering)
+
+Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/peering
+
+Version: 0.4.0
+
 ### <a name="module_hub_virtual_networks"></a> [hub\_virtual\_networks](#module\_hub\_virtual\_networks)
 
-Source: Azure/subnets/azurerm
+Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 1.0.0
+Version: 0.4.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
