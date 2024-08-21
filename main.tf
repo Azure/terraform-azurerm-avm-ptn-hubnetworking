@@ -1,7 +1,13 @@
 # These locals defined here to avoid conflict with test framework
 locals {
+  firewall_policy_id = {
+    for vnet_name, policy in module.fw_policies : vnet_name => policy.resource_id
+  }
   firewall_private_ip = {
     for vnet_name, fw in module.hub_firewalls : vnet_name => fw.resource.ip_configuration[0].private_ip_address
+  }
+  firewall_subnet_id = {
+    for vnet_name, route in module.hub_routing : vnet_name => route.resource_id
   }
   virtual_networks_modules = {
     for vnet_key, vnet_module in module.hub_virtual_networks : vnet_key => vnet_module
@@ -36,7 +42,7 @@ resource "azurerm_management_lock" "rg_lock" {
 module "hub_virtual_networks" {
   for_each = var.hub_virtual_networks
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version  = "0.3.0"
+  version  = "0.4.0"
 
   name                    = each.value.name
   address_space           = each.value.address_space
@@ -64,7 +70,7 @@ module "hub_virtual_networks" {
 module "hub_virtual_network_peering" {
   for_each = local.hub_peering_map
   source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/peering"
-  version  = "0.3.0"
+  version  = "0.4.0"
 
   virtual_network = {
     resource_id = each.value.virtual_network_id
@@ -88,7 +94,7 @@ module "hub_virtual_network_peering" {
 module "hub_routing" {
   for_each = var.hub_virtual_networks
   source   = "Azure/avm-res-network-routetable/azurerm"
-  version  = "0.2.1"
+  version  = "0.2.2"
 
   location                      = each.value.location
   name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name, "route-${each.key}")
@@ -138,7 +144,7 @@ resource "azurerm_route" "user_routes" {
 module "hub_firewalls" {
   for_each = local.firewalls
   source   = "Azure/avm-res-network-azurefirewall/azurerm"
-  version  = "0.2.0"
+  version  = "0.2.2"
 
   firewall_sku_name   = each.value.sku_name
   firewall_sku_tier   = each.value.sku_tier
@@ -211,7 +217,7 @@ module "fw_management_ips" {
 }
 
 module "fw_policies" {
-  for_each = { for vnet_name, fw in local.fw_policies : vnet_name => fw if fw.firewall_policy_id != null }
+  for_each = { for vnet_name, fw in local.fw_policies : vnet_name => fw if fw.firewall_policy_id == null }
   source   = "Azure/avm-res-network-firewallpolicy/azurerm"
   version  = "0.2.3"
 
@@ -256,24 +262,13 @@ resource "azurerm_subnet" "fw_management_subnet" {
   ]
 }
 
-resource "azurerm_subnet_route_table_association" "fw_subnet_routing_create" {
-  for_each = { for vnet_name, fw in local.firewalls : vnet_name => fw if fw.subnet_route_table_id == null }
-
-  route_table_id = module.hub_routing[each.key].resource_id
-  subnet_id      = azurerm_subnet.fw_subnet[each.key].id
-
-  depends_on = [
-    resource.azurerm_route.default_route
-  ]
-}
-
-resource "azurerm_subnet_route_table_association" "fw_subnet_routing_external" {
-  for_each = { for vnet_name, fw in local.firewalls : vnet_name => fw if fw.subnet_route_table_id != null }
+resource "azurerm_subnet_route_table_association" "fw_subnet_routing" {
+  for_each = local.firewalls
 
   route_table_id = each.value.subnet_route_table_id
   subnet_id      = azurerm_subnet.fw_subnet[each.key].id
 
   depends_on = [
-    module.hub_virtual_networks
+    resource.azurerm_route.default_route
   ]
 }

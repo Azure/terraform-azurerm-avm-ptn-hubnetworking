@@ -14,12 +14,10 @@ locals {
       sku_name              = vnet.firewall.sku_name
       sku_tier              = vnet.firewall.sku_tier
       subnet_address_prefix = vnet.firewall.subnet_address_prefix
-      subnet_route_table_id = vnet.firewall.subnet_route_table_id
-      dns_servers           = vnet.firewall.dns_servers
-      firewall_policy_id    = vnet.firewall.firewall_policy_id
+      firewall_policy_id    = try(local.firewall_policy_id[vnet_name], vnet.firewall.firewall_policy_id, null)
+      subnet_route_table_id = vnet.firewall.subnet_route_table_id != null ? vnet.firewall.subnet_route_table_id : local.firewall_subnet_id[vnet_name]
       private_ip_ranges     = vnet.firewall.private_ip_ranges
       tags                  = vnet.firewall.tags
-      threat_intel_mode     = vnet.firewall.threat_intel_mode
       default_ip_configuration = {
         name = try(coalesce(vnet.firewall.management_ip_configuration.name, "default"), "default")
       }
@@ -63,9 +61,9 @@ locals {
       threat_intelligence_mode          = try(vnet.firewall.firewall_policy.threat_intelligence_mode, null)
       private_ip_ranges                 = try(vnet.firewall.firewall_policy.private_ip_ranges, null)
       threat_intelligence_allowlist     = try(vnet.firewall.firewall_policy.threat_intelligence_allowlist, null)
-      firewall_policy_id                = try(vnet.firewall.firewall_policy.firewall_policy_id, null)
+      firewall_policy_id                = try(vnet.firewall.firewall_policy_id, null)
       tags                              = vnet.firewall.tags
-    }
+    } if vnet.firewall != null && try(vnet.firewall.firewall_policy, null) != null
   }
   hub_peering_map = {
     for peerconfig in flatten([
@@ -111,10 +109,9 @@ locals {
             next_hop_type       = "VirtualAppliance"
             next_hop_ip_address = try(local.firewall_private_ip[k_dst], v_dst.hub_router_ip_address)
             resource_group_name = v_src.resource_group_name
-          }
-          if k_src != k_dst && v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0])
+          } if k_src != k_dst && v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0])
         ]
-      ]
+      ] if v_src.mesh_peering_enabled
     ]) : route.key => route
   }
   resource_group_data = toset([

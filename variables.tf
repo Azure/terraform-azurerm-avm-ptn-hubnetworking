@@ -72,14 +72,12 @@ variable "hub_virtual_networks" {
       sku_name                         = string
       sku_tier                         = string
       subnet_address_prefix            = string
-      dns_servers                      = optional(list(string))
       firewall_policy_id               = optional(string, null)
       management_subnet_address_prefix = optional(string, null)
       name                             = optional(string)
       private_ip_ranges                = optional(list(string))
       subnet_route_table_id            = optional(string)
       tags                             = optional(map(string))
-      threat_intel_mode                = optional(string, "Alert")
       zones                            = optional(list(string))
       default_ip_configuration = optional(object({
         name = optional(string)
@@ -180,15 +178,12 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
   - `sku_name` - The name of the SKU to use for the Azure Firewall. Possible values include `AZFW_Hub`, `AZFW_VNet`.
   - `sku_tier` - The tier of the SKU to use for the Azure Firewall. Possible values include `Basic`, ``Standard`, `Premium`.
   - `subnet_address_prefix` - The IPv4 address prefix to use for the Azure Firewall subnet in CIDR format. Needs to be a part of the virtual network's address space.
-  - `dns_servers` - (Optional) A list of DNS server IP addresses for the Azure Firewall.
-  - `dns_servers` - (Optional) A list of DNS server IP addresses for the Azure Firewall.
   - `firewall_policy_id` - (Optional) The resource id of the Azure Firewall Policy to associate with the Azure Firewall.
   - `management_subnet_address_prefix` - (Optional) The IPv4 address prefix to use for the Azure Firewall management subnet in CIDR format. Needs to be a part of the virtual network's address space.
   - `name` - (Optional) The name of the firewall resource. If not specified will use `afw-{vnetname}`.
   - `private_ip_ranges` - (Optional) A list of private IP ranges to use for the Azure Firewall, to which the firewall will not NAT traffic. If not specified will use RFC1918.
   - `subnet_route_table_id` = (Optional) The resource id of the Route Table which should be associated with the Azure Firewall subnet. If not specified the module will assign the generated route table.
   - `tags` - (Optional) A map of tags to apply to the Azure Firewall. If not specified
-  - `threat_intel_mode` - (Optional) The threat intelligence mode for the Azure Firewall. Possible values include `Alert`, `Deny`, `Off`.
   - `zones` - (Optional) A list of availability zones to use for the Azure Firewall. If not specified will be `null`.
   - `default_ip_configuration` - (Optional) An object with the following fields. If not specified the defaults below will be used:
     - `name` - (Optional) The name of the default IP configuration. If not specified will use `default`.
