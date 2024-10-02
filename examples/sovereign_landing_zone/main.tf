@@ -87,7 +87,7 @@ resource "random_pet" "this" {}
 
 locals {
   ddos_protection_plan_id = ""
-  default_postfix = random_pet.this.id
+  default_postfix         = random_pet.this.id
 }
 
 module "firewall_policy" {
@@ -104,7 +104,7 @@ module "firewall_policy" {
 
 module "hubnetworks" {
   source = "../.."
-  count   = var.deploy_hub_network ? 1 : 0
+  count  = var.deploy_hub_network ? 1 : 0
   hub_virtual_networks = {
     hub = {
       name                            = "vnet-hub-${var.default_prefix}-${var.starter_locations[0]}-${local.default_postfix}"
