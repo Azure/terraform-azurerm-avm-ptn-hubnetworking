@@ -44,13 +44,16 @@ output "virtual_networks" {
   description = "A curated output of the virtual networks created by this module."
   value = {
     for vnet_name, vnet_mod in module.hub_virtual_networks : vnet_name => {
-      name                  = vnet_mod.name
-      resource_group_name   = var.hub_virtual_networks[vnet_name].resource_group_name
-      id                    = vnet_mod.resource_id
-      location              = var.hub_virtual_networks[vnet_name].location
-      address_spaces        = var.hub_virtual_networks[vnet_name].address_space
-      subnets_name_id       = vnet_mod.subnets
-      hub_router_ip_address = try(module.hub_firewalls[vnet_name].resource.ip_configuration[0].private_ip_address, var.hub_virtual_networks[vnet_name].hub_router_ip_address)
+      name                        = vnet_mod.name
+      resource_group_name         = var.hub_virtual_networks[vnet_name].resource_group_name
+      id                          = vnet_mod.resource_id
+      virtual_network_resource_id = vnet_mod.resource.id
+      location                    = var.hub_virtual_networks[vnet_name].location
+      address_spaces              = var.hub_virtual_networks[vnet_name].address_space
+      subnets_name_id             = vnet_mod.subnets
+      subnets                     = vnet_mod.subnets
+      subnet_ids                  = { for subnet_key, subnet_value in vnet_mod.subnets : subnet_key => subnet_value.resource_id }
+      hub_router_ip_address       = try(module.hub_firewalls[vnet_name].resource.ip_configuration[0].private_ip_address, var.hub_virtual_networks[vnet_name].hub_router_ip_address)
     }
   }
 }

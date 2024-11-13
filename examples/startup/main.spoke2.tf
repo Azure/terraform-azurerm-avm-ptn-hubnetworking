@@ -1,11 +1,11 @@
 resource "azurerm_resource_group" "spoke2" {
-  location = "eastus2"
+  location = local.regions.secondary
   name     = "spoke2-${random_pet.rand.id}"
 }
 
 module "spoke2_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.4.0"
+  version = "0.6.0"
 
   name                = "spoke2-vnet-${random_pet.rand.id}"
   address_space       = ["192.168.1.0/24"]
@@ -15,7 +15,7 @@ module "spoke2_vnet" {
   peerings = {
     "spoke2-peering" = {
       name                                 = "spoke2-peering"
-      remote_virtual_network_resource_id   = module.hub_mesh.virtual_networks["eastus2-hub"].id
+      remote_virtual_network_resource_id   = module.hub_mesh.virtual_networks["secondary-hub"].id
       allow_forwarded_traffic              = true
       allow_gateway_transit                = false
       allow_virtual_network_access         = true
@@ -52,13 +52,13 @@ module "route_table_spoke_2" {
       address_prefix         = "192.168.0.0/16"
       name                   = "to-hub"
       next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus2-hub"].hub_router_ip_address
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["secondary-hub"].hub_router_ip_address
     }
     spoke2_to_hub2 = {
       address_prefix         = "10.0.0.0/8"
       name                   = "to-hub2"
       next_hop_type          = "VirtualAppliance"
-      next_hop_in_ip_address = module.hub_mesh.virtual_networks["eastus2-hub"].hub_router_ip_address
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["secondary-hub"].hub_router_ip_address
     }
   }
 }
@@ -80,7 +80,7 @@ module "vm_spoke2" {
   }]
 
   os_type  = "linux"
-  sku_size = "Standard_B2ms"
+  sku_size = "Standard_B1s"
 
   network_interfaces = {
     network_interface_1 = {

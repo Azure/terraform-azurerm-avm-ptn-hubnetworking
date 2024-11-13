@@ -1,5 +1,8 @@
 locals {
-  regions = toset(["eastus", "eastus2"])
+  regions = {
+    primary   = "uksouth"
+    secondary = "northeurope"
+  }
 }
 
 resource "azurerm_resource_group" "hub_rg" {
@@ -14,15 +17,15 @@ resource "random_pet" "rand" {}
 module "hub_mesh" {
   source = "../.."
   hub_virtual_networks = {
-    eastus-hub = {
-      name                            = "eastus-hub"
+    primary-hub = {
+      name                            = "primary"
       address_space                   = ["10.0.0.0/16"]
-      location                        = "eastus"
-      resource_group_name             = azurerm_resource_group.hub_rg["eastus"].name
+      location                        = local.regions.primary
+      resource_group_name             = azurerm_resource_group.hub_rg["primary"].name
       resource_group_creation_enabled = false
       resource_group_lock_enabled     = false
       mesh_peering_enabled            = true
-      route_table_name                = "contosohotel-eastus-hub-rt2"
+      route_table_name                = "contosohotel-primary-hub-rt2"
       routing_address_space           = ["10.0.0.0/16", "192.168.0.0/24"]
       firewall = {
         sku_name              = "AZFW_VNet"
@@ -31,15 +34,15 @@ module "hub_mesh" {
         firewall_policy_id    = module.fw_policy.resource_id
       }
     }
-    eastus2-hub = {
-      name                            = "eastus2-hub"
+    secondary-hub = {
+      name                            = "secondary-hub"
       address_space                   = ["10.1.0.0/16"]
-      location                        = "eastus2"
-      resource_group_name             = azurerm_resource_group.hub_rg["eastus2"].name
+      location                        = local.regions.secondary
+      resource_group_name             = azurerm_resource_group.hub_rg["secondary"].name
       resource_group_creation_enabled = false
       resource_group_lock_enabled     = false
       mesh_peering_enabled            = true
-      route_table_name                = "contoso-eastus2-hub-rt2"
+      route_table_name                = "contoso-secondary-hub-rt2"
       routing_address_space           = ["10.1.0.0/16", "192.168.1.0/24"]
       firewall = {
         sku_name              = "AZFW_VNet"
@@ -64,7 +67,7 @@ resource "local_sensitive_file" "private_key" {
 }
 
 resource "azurerm_resource_group" "fwpolicy" {
-  location = "eastus"
+  location = local.regions.primary
   name     = "fwpolicy-${random_pet.rand.id}"
 }
 

@@ -73,6 +73,10 @@ module "hub_virtual_network_peering" {
   reverse_allow_gateway_transit        = each.value.reverse_allow_gateway_transit
   reverse_allow_virtual_network_access = each.value.reverse_allow_virtual_network_access
   reverse_use_remote_gateways          = each.value.reverse_use_remote_gateways
+
+  depends_on = [
+    module.hub_virtual_networks
+  ]
 }
 
 module "hub_routing" {
