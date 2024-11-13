@@ -42,7 +42,7 @@ resource "azurerm_management_lock" "rg_lock" {
 module "hub_virtual_networks" {
   for_each = var.hub_virtual_networks
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version  = "0.4.0"
+  version  = "0.6.0"
 
   name                    = each.value.name
   address_space           = each.value.address_space
