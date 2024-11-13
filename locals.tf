@@ -1,4 +1,19 @@
 locals {
+  firewall_policy_id = {
+    for vnet_name, policy in module.fw_policies : vnet_name => policy.resource_id
+  }
+  firewall_private_ip = {
+    for vnet_name, fw in module.hub_firewalls : vnet_name => fw.resource.ip_configuration[0].private_ip_address
+  }
+  firewall_subnet_id = {
+    for vnet_name, route in module.hub_routing : vnet_name => route.resource_id
+  }
+  virtual_networks_modules = {
+    for vnet_key, vnet_module in module.hub_virtual_networks : vnet_key => vnet_module
+  }
+}
+
+locals {
   firewall_management_subnets = {
     for k, v in var.hub_virtual_networks : k => {
       address_prefixes     = [v.firewall.management_subnet_address_prefix]

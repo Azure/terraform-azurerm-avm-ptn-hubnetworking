@@ -1,19 +1,3 @@
-# These locals defined here to avoid conflict with test framework
-locals {
-  firewall_policy_id = {
-    for vnet_name, policy in module.fw_policies : vnet_name => policy.resource_id
-  }
-  firewall_private_ip = {
-    for vnet_name, fw in module.hub_firewalls : vnet_name => fw.resource.ip_configuration[0].private_ip_address
-  }
-  firewall_subnet_id = {
-    for vnet_name, route in module.hub_routing : vnet_name => route.resource_id
-  }
-  virtual_networks_modules = {
-    for vnet_key, vnet_module in module.hub_virtual_networks : vnet_key => vnet_module
-  }
-}
-
 # Create rgs as defined by var.hub_networks
 resource "azurerm_resource_group" "rg" {
   for_each = { for rg in local.resource_group_data : rg.key => rg }
@@ -70,7 +54,7 @@ module "hub_virtual_networks" {
 module "hub_virtual_network_peering" {
   for_each = local.hub_peering_map
   source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/peering"
-  version  = "0.4.0"
+  version  = "0.6.0"
 
   virtual_network = {
     resource_id = each.value.virtual_network_id
