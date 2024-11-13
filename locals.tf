@@ -8,8 +8,11 @@ locals {
   firewall_subnet_id = {
     for vnet_name, route in module.hub_routing : vnet_name => route.resource_id
   }
-  virtual_networks_modules = {
-    for vnet_key, vnet_module in module.hub_virtual_networks : vnet_key => vnet_module
+  virtual_network_id = {
+    for vnet_key, vnet_module in module.hub_virtual_networks : vnet_key => vnet_module.resource_id
+  }
+  virtual_network_name = {
+    for vnet_key, vnet_module in module.hub_virtual_networks : vnet_key => vnet_module.name
   }
 }
 
@@ -86,18 +89,18 @@ locals {
       [
         for dst_index, dst_data in local.indexed_hub_virtual_networks :
         {
-          name                                 = "${local.virtual_networks_modules[src_data.key].name}-${local.virtual_networks_modules[dst_data.key].name}"
+          name                                 = "${local.virtual_network_name[src_data.key]}-${local.virtual_network_name[dst_data.key]}"
           key                                  = "${src_data.key}-${dst_data.key}"
           src_key                              = src_data.key
           dst_key                              = dst_data.key
-          virtual_network_id                   = local.virtual_networks_modules[src_data.key].resource_id
-          remote_virtual_network_id            = local.virtual_networks_modules[dst_data.key].resource_id
+          virtual_network_id                   = local.virtual_network_id[src_data.key]
+          remote_virtual_network_id            = local.virtual_network_id[dst_data.key]
           allow_virtual_network_access         = true
           allow_forwarded_traffic              = true
           allow_gateway_transit                = true
           use_remote_gateways                  = false
           create_reverse_peering               = true
-          reverse_name                         = "${local.virtual_networks_modules[dst_data.key].name}-${local.virtual_networks_modules[src_data.key].name}"
+          reverse_name                         = "${local.virtual_network_name[dst_data.key]}-${local.virtual_network_name[src_data.key]}"
           reverse_allow_virtual_network_access = true
           reverse_allow_forwarded_traffic      = true
           reverse_allow_gateway_transit        = true
