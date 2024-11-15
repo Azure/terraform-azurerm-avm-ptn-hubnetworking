@@ -151,9 +151,11 @@ locals {
       } if subnet.service_endpoint_policy_ids != null
     }
   }
-  subnets_map = {
-    for k, v in var.hub_virtual_networks : k => {
-      for subnetKey, subnet in v.subnets : subnetKey => {
+  subnets = { for subnet in flatten([
+    for k, v in var.hub_virtual_networks : [
+      for subnetKey, subnet in v.subnets : [{
+        composite_key                                 = "${k}-${subnetKey}"
+        virtual_network_id                            = local.virtual_network_id[k]
         name                                          = subnet.name
         address_prefixes                              = subnet.address_prefixes
         nat_gateway                                   = subnet.nat_gateway
@@ -164,8 +166,8 @@ locals {
         service_endpoint_policies                     = try(local.service_endpoint_policy_map[k][subnetKey], null)
         delegation                                    = subnet.delegations
         route_table                                   = subnet.assign_generated_route_table ? { id = module.hub_routing[k].resource_id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
-      }
-    }
+      }]
+    ]]) : subnet.composite_key => subnet
   }
   user_route_map = {
     for route in flatten([

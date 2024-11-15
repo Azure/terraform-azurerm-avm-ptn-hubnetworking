@@ -357,19 +357,25 @@ Version: 0.2.2
 
 Source: Azure/avm-res-network-routetable/azurerm
 
-Version: 0.2.2
+Version: 0.3.1
 
 ### <a name="module_hub_virtual_network_peering"></a> [hub\_virtual\_network\_peering](#module\_hub\_virtual\_network\_peering)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/peering
 
-Version: 0.6.0
+Version: 0.7.0
+
+### <a name="module_hub_virtual_network_subnets"></a> [hub\_virtual\_network\_subnets](#module\_hub\_virtual\_network\_subnets)
+
+Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/subnet
+
+Version: 0.7.0
 
 ### <a name="module_hub_virtual_networks"></a> [hub\_virtual\_networks](#module\_hub\_virtual\_networks)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.6.0
+Version: 0.7.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

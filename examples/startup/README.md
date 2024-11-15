@@ -181,25 +181,25 @@ Version:
 
 Source: Azure/avm-res-network-routetable/azurerm
 
-Version: 0.2.2
+Version: 0.3.1
 
 ### <a name="module_route_table_spoke_2"></a> [route\_table\_spoke\_2](#module\_route\_table\_spoke\_2)
 
 Source: Azure/avm-res-network-routetable/azurerm
 
-Version: 0.2.2
+Version: 0.3.1
 
 ### <a name="module_spoke1_vnet"></a> [spoke1\_vnet](#module\_spoke1\_vnet)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.6.0
+Version: 0.7.0
 
 ### <a name="module_spoke2_vnet"></a> [spoke2\_vnet](#module\_spoke2\_vnet)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.6.0
+Version: 0.7.0
 
 ### <a name="module_vm_spoke1"></a> [vm\_spoke1](#module\_vm\_spoke1)
 
