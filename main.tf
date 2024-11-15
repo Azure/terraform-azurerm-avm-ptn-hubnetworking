@@ -66,7 +66,7 @@ module "hub_virtual_network_subnets" {
   private_link_service_network_policies_enabled = each.value.private_link_service_network_policies_enabled
   service_endpoints                             = each.value.service_endpoints
   service_endpoint_policies                     = each.value.service_endpoint_policies
-  delegation                                    = each.value.delegations
+  delegation                                    = each.value.delegation
   route_table                                   = each.value.route_table
 }
 
