@@ -1,3 +1,34 @@
+terraform {
+  required_version = ">= 1.9.2"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">=3.7.0, < 4.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "2.3.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "4.0.4"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 locals {
   regions = {
     primary   = "uksouth"
@@ -9,7 +40,7 @@ resource "azurerm_resource_group" "hub_rg" {
   for_each = local.regions
 
   location = each.value
-  name     = "hubandspokedemo-hub-${each.value}-${random_pet.rand.id}"
+  name     = "rg-hub-${each.value}-${random_pet.rand.id}"
 }
 
 resource "random_pet" "rand" {}
@@ -25,13 +56,19 @@ module "hub_mesh" {
       resource_group_creation_enabled = false
       resource_group_lock_enabled     = false
       mesh_peering_enabled            = true
-      route_table_name                = "contosohotel-primary-hub-rt2"
+      route_table_name                = "rt-hub-primary"
       routing_address_space           = ["10.0.0.0/16", "192.168.0.0/24"]
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
         firewall_policy_id    = module.fw_policy.resource_id
+      }
+      subnets = {
+        test-subnet = {
+          name             = "user-test-subnet"
+          address_prefixes = ["10.0.101.0/24"]
+        }
       }
     }
     secondary-hub = {
@@ -42,13 +79,19 @@ module "hub_mesh" {
       resource_group_creation_enabled = false
       resource_group_lock_enabled     = false
       mesh_peering_enabled            = true
-      route_table_name                = "contoso-secondary-hub-rt2"
+      route_table_name                = "rt-hub-secondary"
       routing_address_space           = ["10.1.0.0/16", "192.168.1.0/24"]
       firewall = {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.1.1.0/24"
         firewall_policy_id    = module.fw_policy.resource_id
+      }
+      subnets = {
+        test-subnet = {
+          name             = "user-test-subnet"
+          address_prefixes = ["10.1.101.0/24"]
+        }
       }
     }
   }
@@ -68,7 +111,7 @@ resource "local_sensitive_file" "private_key" {
 
 resource "azurerm_resource_group" "fwpolicy" {
   location = local.regions.primary
-  name     = "fwpolicy-${random_pet.rand.id}"
+  name     = "rg-hub-fwp-${random_pet.rand.id}"
 }
 
 module "fw_policy" {
@@ -102,4 +145,233 @@ module "fw_policy_rule_collection_groups" {
       source_addresses      = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
     }]
   }]
+}
+
+# Spoke 1
+resource "azurerm_resource_group" "spoke1" {
+  location = local.regions.primary
+  name     = "rg-spoke1-${random_pet.rand.id}"
+}
+
+module "spoke1_vnet" {
+  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version = "0.7.1"
+
+  name                = "vnet-spoke1-${random_pet.rand.id}"
+  address_space       = ["192.168.0.0/24"]
+  resource_group_name = azurerm_resource_group.spoke1.name
+  location            = azurerm_resource_group.spoke1.location
+
+  peerings = {
+    "spoke1-peering" = {
+      name                                 = "spoke1-peering"
+      remote_virtual_network_resource_id   = module.hub_mesh.virtual_networks["primary-hub"].id
+      allow_forwarded_traffic              = true
+      allow_gateway_transit                = false
+      allow_virtual_network_access         = true
+      use_remote_gateways                  = false
+      create_reverse_peering               = true
+      reverse_name                         = "spoke1-peering-back"
+      reverse_allow_forwarded_traffic      = false
+      reverse_allow_gateway_transit        = false
+      reverse_allow_virtual_network_access = true
+      reverse_use_remote_gateways          = false
+    }
+  }
+  subnets = {
+    spoke1-subnet = {
+      name             = "spoke1-subnet"
+      address_prefixes = ["192.168.0.0/24"]
+      route_table = {
+        id = module.route_table_spoke1.resource_id
+      }
+    }
+  }
+}
+
+module "route_table_spoke1" {
+  source  = "Azure/avm-res-network-routetable/azurerm"
+  version = "0.3.1"
+
+  location            = azurerm_resource_group.spoke1.location
+  name                = "rt-spoke1"
+  resource_group_name = azurerm_resource_group.spoke1.name
+
+  routes = {
+    spoke1_to_hub = {
+      address_prefix         = "192.168.0.0/16"
+      name                   = "to-hub"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["primary-hub"].hub_router_ip_address
+    }
+    spoke1_to_hub2 = {
+      address_prefix         = "10.0.0.0/8"
+      name                   = "to-hub2"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["primary-hub"].hub_router_ip_address
+    }
+  }
+}
+
+module "vm_spoke1" {
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version = "0.15.1"
+
+  location                           = azurerm_resource_group.spoke1.location
+  name                               = "vm-spoke1"
+  resource_group_name                = azurerm_resource_group.spoke1.name
+  zone                               = 1
+  admin_username                     = "adminuser"
+  generate_admin_password_or_ssh_key = false
+
+  admin_ssh_keys = [{
+    public_key = tls_private_key.key.public_key_openssh
+    username   = "adminuser"
+  }]
+
+  os_type  = "linux"
+  sku_size = "Standard_B1s"
+
+  network_interfaces = {
+    network_interface_1 = {
+      name = "internal"
+      ip_configurations = {
+        ip_configurations_1 = {
+          name                          = "internal"
+          private_ip_address_allocation = "Dynamic"
+          private_ip_subnet_resource_id = module.spoke1_vnet.subnets["spoke1-subnet"].resource_id
+        }
+      }
+    }
+  }
+
+  os_disk = {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference = {
+    offer     = "0001-com-ubuntu-server-jammy"
+    publisher = "Canonical"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+
+# Spoke 2
+
+resource "azurerm_resource_group" "spoke2" {
+  location = local.regions.secondary
+  name     = "rg-spoke2-${random_pet.rand.id}"
+}
+
+module "spoke2_vnet" {
+  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version = "0.7.1"
+
+  name                = "vnet-spoke2-${random_pet.rand.id}"
+  address_space       = ["192.168.1.0/24"]
+  resource_group_name = azurerm_resource_group.spoke2.name
+  location            = azurerm_resource_group.spoke2.location
+
+  peerings = {
+    "spoke2-peering" = {
+      name                                 = "spoke2-peering"
+      remote_virtual_network_resource_id   = module.hub_mesh.virtual_networks["secondary-hub"].id
+      allow_forwarded_traffic              = true
+      allow_gateway_transit                = false
+      allow_virtual_network_access         = true
+      use_remote_gateways                  = false
+      create_reverse_peering               = true
+      reverse_name                         = "spoke2-peering-back"
+      reverse_allow_forwarded_traffic      = false
+      reverse_allow_gateway_transit        = false
+      reverse_allow_virtual_network_access = true
+      reverse_use_remote_gateways          = false
+    }
+  }
+  subnets = {
+    spoke2-subnet = {
+      name             = "spoke2-subnet"
+      address_prefixes = ["192.168.1.0/24"]
+      route_table = {
+        id = module.route_table_spoke_2.resource_id
+      }
+    }
+  }
+}
+
+module "route_table_spoke_2" {
+  source  = "Azure/avm-res-network-routetable/azurerm"
+  version = "0.3.1"
+
+  location            = azurerm_resource_group.spoke2.location
+  name                = "rt-spoke2"
+  resource_group_name = azurerm_resource_group.spoke2.name
+
+  routes = {
+    spoke2_to_hub = {
+      address_prefix         = "192.168.0.0/16"
+      name                   = "to-hub"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["secondary-hub"].hub_router_ip_address
+    }
+    spoke2_to_hub2 = {
+      address_prefix         = "10.0.0.0/8"
+      name                   = "to-hub2"
+      next_hop_type          = "VirtualAppliance"
+      next_hop_in_ip_address = module.hub_mesh.virtual_networks["secondary-hub"].hub_router_ip_address
+    }
+  }
+}
+
+module "vm_spoke2" {
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version = "0.15.1"
+
+  location                           = azurerm_resource_group.spoke2.location
+  name                               = "vm-spoke2"
+  resource_group_name                = azurerm_resource_group.spoke2.name
+  zone                               = 1
+  admin_username                     = "adminuser"
+  generate_admin_password_or_ssh_key = false
+
+  admin_ssh_keys = [{
+    public_key = tls_private_key.key.public_key_openssh
+    username   = "adminuser"
+  }]
+
+  os_type  = "linux"
+  sku_size = "Standard_B1s"
+
+  network_interfaces = {
+    network_interface_1 = {
+      name = "nic"
+      ip_configurations = {
+        ip_configurations_1 = {
+          name                          = "nic"
+          private_ip_address_allocation = "Dynamic"
+          private_ip_subnet_resource_id = module.spoke2_vnet.subnets["spoke2-subnet"].resource_id
+          create_public_ip_address      = true
+          public_ip_address_name        = "vm1-pip"
+        }
+      }
+    }
+  }
+
+  os_disk = {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference = {
+    offer     = "0001-com-ubuntu-server-jammy"
+    publisher = "Canonical"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+
+output "virtual_networks" {
+  value = module.hub_mesh.virtual_networks
 }

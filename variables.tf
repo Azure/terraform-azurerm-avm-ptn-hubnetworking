@@ -82,7 +82,7 @@ variable "hub_virtual_networks" {
       default_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({
-          ip_version = optional(string)
+          ip_version = optional(string, "IPv4")
           name       = optional(string)
           sku_tier   = optional(string, "Regional")
           zones      = optional(set(string))
@@ -91,7 +91,7 @@ variable "hub_virtual_networks" {
       management_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({
-          ip_version = optional(string)
+          ip_version = optional(string, "IPv4")
           name       = optional(string)
           sku_tier   = optional(string, "Regional")
           zones      = optional(set(string))

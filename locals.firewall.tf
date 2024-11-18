@@ -1,0 +1,74 @@
+locals {
+  firewall_policy_id = {
+    for vnet_name, policy in module.fw_policies : vnet_name => policy.resource_id
+  }
+  firewall_private_ip = {
+    for vnet_name, fw in module.hub_firewalls : vnet_name => fw.resource.ip_configuration[0].private_ip_address
+  }
+  firewall_route_table_id = {
+    # NOTE: For the destroy, you cannot delete the default route before removing the route table from the AzureFirewallSubnet. 
+    # Therefore we are building an implicit dependency on the default route here.
+    for vnet_name, route in azurerm_route.default_route : vnet_name => replace(route.id, "/routes/internet", "")
+  }
+}
+
+locals {
+  firewalls = {
+    for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
+      name                  = coalesce(vnet.firewall.name, "fw-${vnet_name}")
+      sku_name              = vnet.firewall.sku_name
+      sku_tier              = vnet.firewall.sku_tier
+      subnet_address_prefix = vnet.firewall.subnet_address_prefix
+      firewall_policy_id    = try(local.firewall_policy_id[vnet_name], vnet.firewall.firewall_policy_id, null)
+      subnet_route_table_id = vnet.firewall.subnet_route_table_id != null ? vnet.firewall.subnet_route_table_id : local.firewall_route_table_id[vnet_name]
+      resource_group_name   = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
+      private_ip_ranges     = vnet.firewall.private_ip_ranges
+      tags                  = vnet.firewall.tags
+      default_ip_configuration = {
+        name = try(coalesce(vnet.firewall.management_ip_configuration.name, "default"), "default")
+      }
+      management_ip_configuration = {
+        name = try(coalesce(vnet.firewall.management_ip_configuration.name, "defaultMgmt"), "defaultMgmt")
+      }
+      zones = vnet.firewall.zones
+    } if vnet.firewall != null
+  }
+  fw_default_ip_configuration_pip = {
+    for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
+      location            = vnet.location
+      name                = try(vnet.firewall.default_ip_configuration.public_ip_config.name, "pip-fw-${vnet_name}")
+      resource_group_name = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
+      ip_version          = try(vnet.firewall.default_ip_configuration.public_ip_config.ip_version, "IPv4")
+      sku_tier            = try(vnet.firewall.default_ip_configuration.public_ip_config.sku_tier, "Regional")
+      tags                = vnet.firewall.tags
+      zones               = try(vnet.firewall.default_ip_configuration.public_ip_config.zones, null)
+    } if vnet.firewall != null
+  }
+  fw_management_ip_configuration_pip = {
+    for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
+      location            = vnet.location
+      name                = try(vnet.firewall.management_ip_configuration.public_ip_config.name, "pip-fw-mgmt-${vnet_name}")
+      resource_group_name = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
+      ip_version          = try(vnet.firewall.management_ip_coniguration.public_ip_config.ip_version, "IPv4")
+      sku_tier            = try(vnet.firewall.management_ip_coniguration.public_ip_config.sku_tier, "Regional")
+      tags                = vnet.firewall.tags
+      zones               = try(vnet.firewall.management_ip_coniguration.public_ip_config.zones, null)
+    } if try(vnet.firewall.sku_tier, "FirewallNull") == "Basic" && vnet.firewall != null
+  }
+  fw_policies = {
+    for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
+      name                              = try(vnet.firewall.firewall_policy.name, "fwp-${vnet_name}")
+      location                          = vnet.location
+      resource_group_name               = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
+      sku                               = try(vnet.firewall.firewall_policy.sku, "Standard")
+      auto_learn_private_ranges_enabled = try(vnet.firewall.firewall_policy.auto_learn_private_ranges_enabled, null)
+      base_policy_id                    = try(vnet.firewall.firewall_policy.base_policy_id, null)
+      dns                               = try(vnet.firewall.firewall_policy.dns, null)
+      threat_intelligence_mode          = try(vnet.firewall.firewall_policy.threat_intelligence_mode, null)
+      private_ip_ranges                 = try(vnet.firewall.firewall_policy.private_ip_ranges, null)
+      threat_intelligence_allowlist     = try(vnet.firewall.firewall_policy.threat_intelligence_allowlist, null)
+      firewall_policy_id                = try(vnet.firewall.firewall_policy_id, null)
+      tags                              = vnet.firewall.tags
+    } if vnet.firewall != null && try(vnet.firewall.firewall_policy, null) != null
+  }
+}

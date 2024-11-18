@@ -68,9 +68,6 @@ The following resources are used by this module:
 - [azurerm_route.default_route](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
 - [azurerm_route.mesh_routes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
 - [azurerm_route.user_routes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
-- [azurerm_subnet.fw_management_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet.fw_subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet_route_table_association.fw_subnet_routing](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_route_table_association) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
@@ -268,7 +265,7 @@ map(object({
       default_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({
-          ip_version = optional(string)
+          ip_version = optional(string, "IPv4")
           name       = optional(string)
           sku_tier   = optional(string, "Regional")
           zones      = optional(set(string))
@@ -277,7 +274,7 @@ map(object({
       management_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({
-          ip_version = optional(string)
+          ip_version = optional(string, "IPv4")
           name       = optional(string)
           sku_tier   = optional(string, "Regional")
           zones      = optional(set(string))
@@ -357,19 +354,25 @@ Version: 0.2.2
 
 Source: Azure/avm-res-network-routetable/azurerm
 
-Version: 0.2.2
+Version: 0.3.1
 
 ### <a name="module_hub_virtual_network_peering"></a> [hub\_virtual\_network\_peering](#module\_hub\_virtual\_network\_peering)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/peering
 
-Version: 0.6.0
+Version: 0.7.1
+
+### <a name="module_hub_virtual_network_subnets"></a> [hub\_virtual\_network\_subnets](#module\_hub\_virtual\_network\_subnets)
+
+Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/subnet
+
+Version: 0.7.1
 
 ### <a name="module_hub_virtual_networks"></a> [hub\_virtual\_networks](#module\_hub\_virtual\_networks)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.6.0
+Version: 0.7.1
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

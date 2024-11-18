@@ -1,6 +1,39 @@
+variable "location" {
+  type    = string
+  default = "westus2"
+}
+
+variable "suffix" {
+  type    = string
+  default = "test"
+}
+
+terraform {
+  required_version = ">= 1.9.2"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">=3.7.0, < 4.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 resource "azurerm_resource_group" "rg" {
   location = var.location
-  name     = "hubdemo-hub-${var.suffix}-${random_pet.rand.id}"
+  name     = "rg-hub-${var.suffix}-${random_pet.rand.id}"
 }
 
 resource "random_pet" "rand" {}
@@ -27,4 +60,24 @@ module "hub" {
       }
     }
   }
+}
+
+output "firewall_id" {
+  value = module.hub.firewalls["hub"].id
+}
+
+output "firewall_ip_address" {
+  value = module.hub.firewalls["hub"].public_ip_address
+}
+
+output "resource_group_id" {
+  value = azurerm_resource_group.rg.id
+}
+
+output "virtual_network_id" {
+  value = module.hub.virtual_networks["hub"].id
+}
+
+output "subnet_ids" {
+  value = module.hub.virtual_networks["hub"].subnet_ids
 }
