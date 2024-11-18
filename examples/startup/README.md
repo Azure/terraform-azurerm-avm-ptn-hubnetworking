@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Complete example for the AVM hub network module with peering mesh
+# Complete example for the hub network module with peering mesh
 
-This shows how to create and manage hub networks with AVMs with all options enabled to create a multi-region peering mesh hosting sample VMs.
+This shows how to create and manage hub networks with all options enabled to create a multi-region peering mesh hosting sample VMs.
 
 ```hcl
 terraform {
@@ -70,6 +70,12 @@ module "hub_mesh" {
         subnet_address_prefix = "10.0.1.0/24"
         firewall_policy_id    = module.fw_policy.resource_id
       }
+      subnets = {
+        test-subnet = {
+          name             = "user-test-subnet"
+          address_prefixes = ["10.0.101.0/24"]
+        }
+      }
     }
     secondary-hub = {
       name                            = "secondary-hub"
@@ -86,6 +92,12 @@ module "hub_mesh" {
         sku_tier              = "Standard"
         subnet_address_prefix = "10.1.1.0/24"
         firewall_policy_id    = module.fw_policy.resource_id
+      }
+      subnets = {
+        test-subnet = {
+          name             = "user-test-subnet"
+          address_prefixes = ["10.1.101.0/24"]
+        }
       }
     }
   }
