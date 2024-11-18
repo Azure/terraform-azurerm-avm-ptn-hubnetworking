@@ -193,13 +193,13 @@ Version: 0.3.1
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.7.0
+Version: 0.7.1
 
 ### <a name="module_spoke2_vnet"></a> [spoke2\_vnet](#module\_spoke2\_vnet)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.7.0
+Version: 0.7.1
 
 ### <a name="module_vm_spoke1"></a> [vm\_spoke1](#module\_vm\_spoke1)
 

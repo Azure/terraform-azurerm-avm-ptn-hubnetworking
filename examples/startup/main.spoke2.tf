@@ -5,7 +5,7 @@ resource "azurerm_resource_group" "spoke2" {
 
 module "spoke2_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.7.0"
+  version = "0.7.1"
 
   name                = "spoke2-vnet-${random_pet.rand.id}"
   address_space       = ["192.168.1.0/24"]
