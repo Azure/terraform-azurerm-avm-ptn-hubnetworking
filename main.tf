@@ -26,7 +26,7 @@ resource "azurerm_management_lock" "rg_lock" {
 module "hub_virtual_networks" {
   for_each = var.hub_virtual_networks
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version  = "0.7.0"
+  version  = "0.7.1"
 
   name                    = each.value.name
   address_space           = each.value.address_space
@@ -52,7 +52,7 @@ module "hub_virtual_networks" {
 
 module "hub_virtual_network_subnets" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/subnet"
-  version  = "0.7.0"
+  version  = "0.7.1"
   for_each = local.subnets
 
   virtual_network = {
@@ -71,27 +71,18 @@ module "hub_virtual_network_subnets" {
 }
 
 module "hub_virtual_network_peering" {
-  for_each = local.hub_peering_map
+  for_each = local.peerings
   source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/peering"
-  version  = "0.7.0"
+  version  = "0.7.1"
 
-  virtual_network = {
-    resource_id = each.value.virtual_network_id
-  }
-  remote_virtual_network = {
-    resource_id = each.value.remote_virtual_network_id
-  }
-  name                                 = each.value.name
-  allow_forwarded_traffic              = each.value.allow_forwarded_traffic
-  allow_gateway_transit                = each.value.allow_gateway_transit
-  allow_virtual_network_access         = each.value.allow_virtual_network_access
-  use_remote_gateways                  = each.value.use_remote_gateways
-  create_reverse_peering               = each.value.create_reverse_peering
-  reverse_name                         = each.value.reverse_name
-  reverse_allow_forwarded_traffic      = each.value.reverse_allow_forwarded_traffic
-  reverse_allow_gateway_transit        = each.value.reverse_allow_gateway_transit
-  reverse_allow_virtual_network_access = each.value.reverse_allow_virtual_network_access
-  reverse_use_remote_gateways          = each.value.reverse_use_remote_gateways
+  virtual_network              = each.value.virtual_network
+  remote_virtual_network       = each.value.remote_virtual_network
+  name                         = each.value.name
+  allow_forwarded_traffic      = each.value.allow_forwarded_traffic
+  allow_gateway_transit        = each.value.allow_gateway_transit
+  allow_virtual_network_access = each.value.allow_virtual_network_access
+  use_remote_gateways          = each.value.use_remote_gateways
+  create_reverse_peering       = false
 }
 
 module "hub_routing" {

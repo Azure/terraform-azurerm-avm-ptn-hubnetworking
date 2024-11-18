@@ -83,38 +83,6 @@ locals {
       tags                              = vnet.firewall.tags
     } if vnet.firewall != null && try(vnet.firewall.firewall_policy, null) != null
   }
-  hub_peering_map = {
-    for peerconfig in flatten([
-      for src_index, src_data in local.indexed_hub_virtual_networks :
-      [
-        for dst_index, dst_data in local.indexed_hub_virtual_networks :
-        {
-          name                                 = "${local.virtual_network_name[src_data.key]}-${local.virtual_network_name[dst_data.key]}"
-          key                                  = "${src_data.key}-${dst_data.key}"
-          src_key                              = src_data.key
-          dst_key                              = dst_data.key
-          virtual_network_id                   = local.virtual_network_id[src_data.key]
-          remote_virtual_network_id            = local.virtual_network_id[dst_data.key]
-          allow_virtual_network_access         = true
-          allow_forwarded_traffic              = true
-          allow_gateway_transit                = true
-          use_remote_gateways                  = false
-          create_reverse_peering               = true
-          reverse_name                         = "${local.virtual_network_name[dst_data.key]}-${local.virtual_network_name[src_data.key]}"
-          reverse_allow_virtual_network_access = true
-          reverse_allow_forwarded_traffic      = true
-          reverse_allow_gateway_transit        = true
-          reverse_use_remote_gateways          = false
-        } if src_index > dst_index && dst_data.value.mesh_peering_enabled
-      ] if src_data.value.mesh_peering_enabled
-    ]) : peerconfig.key => peerconfig
-  }
-  indexed_hub_virtual_networks = [
-    for k, v in var.hub_virtual_networks : {
-      key   = k
-      value = v
-    }
-  ]
   mesh_route_map = {
     for route in flatten([
       for k_src, v_src in var.hub_virtual_networks : [
@@ -131,6 +99,23 @@ locals {
         ]
       ] if v_src.mesh_peering_enabled
     ]) : route.key => route
+  }
+  peerings = { for peering in flatten([for key_from, value_from in var.hub_virtual_networks : [
+    for key_to, value_to in var.hub_virtual_networks : {
+      name          = "${local.virtual_network_name[key_from]}-${local.virtual_network_name[key_to]}"
+      composite_key = "${key_from}-${key_to}"
+      virtual_network = {
+        resource_id = local.virtual_network_id[key_from]
+      }
+      remote_virtual_network = {
+        resource_id = local.virtual_network_id[key_to]
+      }
+      allow_virtual_network_access = true
+      allow_forwarded_traffic      = true
+      allow_gateway_transit        = true
+      use_remote_gateways          = false
+    } if key_from != key_to]
+    ]) : peering.composite_key => peering
   }
   resource_group_data = toset([
     for k, v in var.hub_virtual_networks : {
@@ -155,6 +140,7 @@ locals {
     for k, v in var.hub_virtual_networks : [
       for subnetKey, subnet in v.subnets : [{
         composite_key                                 = "${k}-${subnetKey}"
+        virtual_newtork_key                           = k
         virtual_network_id                            = local.virtual_network_id[k]
         name                                          = subnet.name
         address_prefixes                              = subnet.address_prefixes
