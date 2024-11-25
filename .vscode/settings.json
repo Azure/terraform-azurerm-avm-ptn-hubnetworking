@@ -1,3 +1,8 @@
 {
-    "sarif-viewer.connectToGithubCodeScanning": "on"
+    "sarif-viewer.connectToGithubCodeScanning": "on",
+    "vscode-nmake-tools.workspaceBuildDirectories": [
+        "."
+    ],
+    "vscode-nmake-tools.installRazzleSourcesFormatterExtension": false,
+    "vscode-nmake-tools.installOsRepoRustHelperExtension": false
 }
