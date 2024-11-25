@@ -1,4 +1,5 @@
 locals {
+  firewall_internet_route_name    = "internet"
   firewall_management_subnet_name = "AzureFirewallManagementSubnet"
   firewall_management_subnets = {
     for k, v in var.hub_virtual_networks : "${k}-${local.firewall_management_subnet_name}" => {
@@ -18,14 +19,19 @@ locals {
     }
     if try(v.firewall.sku_tier, "FirewallNull") == "Basic" && v.firewall != null
   }
+  firewall_route_table_ids = {
+    # NOTE: For the destroy, you cannot delete the default route before removing the route table from the AzureFirewallSubnet. 
+    # Therefore we are building an implicit dependency on the default route here.
+    for vnet_name, route in azurerm_route.firewall_default : vnet_name => replace(route.id, "/routes/${local.firewall_internet_route_name}", "")
+  }
   firewall_subnet_name = "AzureFirewallSubnet"
   firewall_subnets = {
-    for k, v in local.firewalls : "${k}-${local.firewall_subnet_name}" => {
+    for k, v in var.hub_virtual_networks : "${k}-${local.firewall_subnet_name}" => {
       composite_key                                 = "${k}-${local.firewall_subnet_name}"
       virtual_newtork_key                           = k
       virtual_network_id                            = local.virtual_network_id[k]
       name                                          = local.firewall_subnet_name
-      address_prefixes                              = [v.subnet_address_prefix]
+      address_prefixes                              = [v.firewall.subnet_address_prefix]
       nat_gateway                                   = null
       network_security_group                        = null
       private_endpoint_network_policies             = null
@@ -33,7 +39,7 @@ locals {
       service_endpoints                             = null
       service_endpoint_policies                     = null
       delegation                                    = null
-      route_table                                   = { id = v.subnet_route_table_id }
+      route_table                                   = { id = v.firewall.subnet_route_table_id != null ? v.firewall.subnet_route_table_id : local.firewall_route_table_ids[k] }
     }
   }
   subnets = merge(local.user_subnets, local.firewall_subnets, local.firewall_management_subnets)
@@ -52,7 +58,7 @@ locals {
         service_endpoints                             = subnet.service_endpoints
         service_endpoint_policies                     = try(local.service_endpoint_policy_map[k][subnetKey], null)
         delegation                                    = subnet.delegations
-        route_table                                   = subnet.assign_generated_route_table ? { id = module.hub_routing[k].resource_id } : subnet.external_route_table_id != null ? { id : subnet.external_route_table_id } : null
+        route_table                                   = try(subnet.route_table.assign_generated_route_table, true) ? { id = module.hub_routing_user_subnets[k].resource_id } : (try(subnet.route_table.id, null) == null ? null : { id = subnet.route_table.id })
       }]
     ]]) : subnet.composite_key => subnet
   }

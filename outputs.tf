@@ -11,20 +11,22 @@ output "firewalls" {
   }
 }
 
-output "hub_route_tables" {
+output "hub_route_tables_firewall" {
   description = "A curated output of the route tables created by this module."
   value = {
-    for vnet_name, rt in module.hub_routing : vnet_name => {
+    for vnet_name, rt in module.hub_routing_firewall : vnet_name => {
       name = rt.name
       id   = rt.resource_id
-      routes = [
-        for r in rt.routes : {
-          name                   = r.name
-          address_prefix         = r.address_prefix
-          next_hop_type          = r.next_hop_type
-          next_hop_in_ip_address = r.next_hop_in_ip_address
-        }
-      ]
+    }
+  }
+}
+
+output "hub_route_tables_user_subnets" {
+  description = "A curated output of the route tables created by this module."
+  value = {
+    for vnet_name, rt in module.hub_routing_user_subnets : vnet_name => {
+      name = rt.name
+      id   = rt.resource_id
     }
   }
 }
