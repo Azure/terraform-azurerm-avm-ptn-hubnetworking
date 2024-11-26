@@ -40,7 +40,7 @@ locals {
       service_endpoint_policies                     = null
       delegation                                    = null
       route_table                                   = { id = v.firewall.subnet_route_table_id != null ? v.firewall.subnet_route_table_id : local.firewall_route_table_ids[k] }
-    }
+    } if v.firewall != null
   }
   subnets = merge(local.user_subnets, local.firewall_subnets, local.firewall_management_subnets)
   user_subnets = { for subnet in flatten([
