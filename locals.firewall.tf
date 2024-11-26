@@ -2,14 +2,6 @@ locals {
   firewall_policy_id = {
     for vnet_name, policy in module.fw_policies : vnet_name => policy.resource_id
   }
-  firewall_private_ip = {
-    for vnet_name, fw in module.hub_firewalls : vnet_name => fw.resource.ip_configuration[0].private_ip_address
-  }
-  firewall_route_table_id = {
-    # NOTE: For the destroy, you cannot delete the default route before removing the route table from the AzureFirewallSubnet. 
-    # Therefore we are building an implicit dependency on the default route here.
-    for vnet_name, route in azurerm_route.default_route : vnet_name => replace(route.id, "/routes/internet", "")
-  }
 }
 
 locals {
@@ -20,7 +12,6 @@ locals {
       sku_tier              = vnet.firewall.sku_tier
       subnet_address_prefix = vnet.firewall.subnet_address_prefix
       firewall_policy_id    = try(local.firewall_policy_id[vnet_name], vnet.firewall.firewall_policy_id, null)
-      subnet_route_table_id = vnet.firewall.subnet_route_table_id != null ? vnet.firewall.subnet_route_table_id : local.firewall_route_table_id[vnet_name]
       resource_group_name   = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
       private_ip_ranges     = vnet.firewall.private_ip_ranges
       tags                  = vnet.firewall.tags

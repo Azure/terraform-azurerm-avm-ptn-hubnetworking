@@ -15,7 +15,8 @@ variable "hub_virtual_networks" {
     address_space                   = list(string)
     location                        = string
     resource_group_name             = string
-    route_table_name                = optional(string)
+    route_table_name_firewall       = optional(string)
+    route_table_name_user_subnets   = optional(string)
     bgp_community                   = optional(string)
     ddos_protection_plan_id         = optional(string)
     dns_servers                     = optional(list(string))
@@ -29,7 +30,16 @@ variable "hub_virtual_networks" {
     hub_router_ip_address           = optional(string)
     tags                            = optional(map(string), {})
 
-    route_table_entries = optional(set(object({
+    route_table_entries_firewall = optional(set(object({
+      name           = string
+      address_prefix = string
+      next_hop_type  = string
+
+      has_bgp_override    = optional(bool, false)
+      next_hop_ip_address = optional(string)
+    })), [])
+
+    route_table_entries_user_subnets = optional(set(object({
       name           = string
       address_prefix = string
       next_hop_type  = string
@@ -50,10 +60,12 @@ variable "hub_virtual_networks" {
         }))
         private_endpoint_network_policies_enabled     = optional(bool, true)
         private_link_service_network_policies_enabled = optional(bool, true)
-        assign_generated_route_table                  = optional(bool, true)
-        external_route_table_id                       = optional(string)
-        service_endpoints                             = optional(set(string))
-        service_endpoint_policy_ids                   = optional(set(string))
+        route_table = optional(object({
+          id                           = optional(string)
+          assign_generated_route_table = optional(bool, true)
+        }))
+        service_endpoints           = optional(set(string))
+        service_endpoint_policy_ids = optional(set(string))
         delegations = optional(list(
           object(
             {
@@ -137,13 +149,22 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
 - `resource_group_lock_enabled` - Should the resource group for this virtual network be locked? Default `true`.
 - `resource_group_lock_name` - The name of the resource group lock.
 - `resource_group_tags` - A map of tags to apply to the resource group.
+- `route_table_name_firewall` - The name of the route table to create for the firewall routes. Default `route-{vnetname}`.
+- `route_table_name_user_subnets` - The name of the route table to create for the user subnet routes. Default `route-{vnetname}`.
 - `routing_address_space` - A list of IPv4 address spaces in CIDR format that are used for routing to this hub, e.g. `["192.168.0.0","172.16.0.0/12"]`.
 - `hub_router_ip_address` - If not using Azure Firewall, this is the IP address of the hub router. This is used to create route table entries for other hub networks.
 - `tags` - A map of tags to apply to the virtual network.
 
 #### Route table entries
 
-- `route_table_entries` - (Optional) A set of additional route table entries to add to the route table for this hub network. Default empty `[]`. The value is an object with the following fields:
+- `route_table_entries_firewall` - (Optional) A set of additional route table entries to add to the Firewall route table for this hub network. Default empty `[]`. The value is an object with the following fields:
+  - `name` - The name of the route table entry.
+  - `address_prefix` - The address prefix to match for this route table entry.
+  - `next_hop_type` - The type of the next hop. Possible values include `Internet`, `VirtualAppliance`, `VirtualNetworkGateway`, `VnetLocal`, `None`.
+  - `has_bgp_override` - Should the BGP override be enabled for this route table entry? Default `false`.
+  - `next_hop_ip_address` - The IP address of the next hop. Required if `next_hop_type` is `VirtualAppliance`.
+
+- `route_table_entries_user_subnets` - (Optional) A set of additional route table entries to add to the User Subnets route table for this hub network. Default empty `[]`. The value is an object with the following fields:
   - `name` - The name of the route table entry.
   - `address_prefix` - The address prefix to match for this route table entry.
   - `next_hop_type` - The type of the next hop. Possible values include `Internet`, `VirtualAppliance`, `VirtualNetworkGateway`, `VnetLocal`, `None`.
@@ -161,8 +182,9 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
     - `id` - The ID of the Network Security Group which should be associated with the Subnet. Changing this forces a new association to be created.
   - `private_endpoint_network_policies_enabled` - (Optional) Enable or Disable network policies for the private endpoint on the subnet. Setting this to true will Enable the policy and setting this to false will Disable the policy. Defaults to true.
   - `private_link_service_network_policies_enabled` - (Optional) Enable or Disable network policies for the private link service on the subnet. Setting this to true will Enable the policy and setting this to false will Disable the policy. Defaults to true.
-  - `assign_generated_route_table` - (Optional) Should the Route Table generated by this module be associated with this Subnet? Default `true`. Cannot be used with `external_route_table_id`.
-  - `external_route_table_id` - (Optional) The ID of the Route Table which should be associated with the Subnet. Changing this forces a new association to be created. Cannot be used with `assign_generated_route_table`.
+  - `route_table` - (Optional) An object with the following fields which are mutually exclusive, choose either an external route table or the generated route table:
+    - `id` - The ID of the Route Table which should be associated with the Subnet. Changing this forces a new association to be created.
+    - `assign_generated_route_table` - (Optional) Should the Route Table generated by this module be associated with this Subnet? Default `true`.
   - `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet.
   - `service_endpoint_policy_ids` - (Optional) The list of Service Endpoint Policy IDs to associate with the subnet.
   - `service_endpoint_policy_assignment_enabled` - (Optional) Should the Service Endpoint Policy be assigned to the subnet? Default `true`.
