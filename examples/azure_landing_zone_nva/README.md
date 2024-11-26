@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-# Complete example for the hub network module with peering mesh based on the Azure Landing Zones Pattern
+# Complete example for the hub network module with peering mesh based on the Azure Landing Zones Pattern with NVA
 
 This shows how to create and manage hub networks with all options enabled to create a multi-region peering mesh hosting sample VMs.
 
@@ -64,25 +64,7 @@ module "hub_mesh" {
       mesh_peering_enabled            = true
       route_table_name                = "rt-hub-primary"
       routing_address_space           = ["10.0.0.0/16"]
-      firewall = {
-        subnet_address_prefix = "10.0.0.0/26"
-        name                  = "fw-hub-primary"
-        sku_name              = "AZFW_VNet"
-        sku_tier              = "Standard"
-        zones                 = ["1", "2", "3"]
-        default_ip_configuration = {
-          public_ip_config = {
-            name  = "pip-fw-hub-primary"
-            zones = ["1", "2", "3"]
-          }
-        }
-        firewall_policy = {
-          name = "fwp-hub-primary"
-          dns = {
-            proxy_enabled = true
-          }
-        }
-      }
+      hub_router_ip_address           = "10.0.2.5"
       subnets = {
         bastion = {
           name             = "AzureBastionSubnet"
@@ -114,25 +96,7 @@ module "hub_mesh" {
       mesh_peering_enabled            = true
       route_table_name                = "rt-hub-secondary"
       routing_address_space           = ["10.1.0.0/16"]
-      firewall = {
-        subnet_address_prefix = "10.1.0.0/26"
-        name                  = "fw-hub-secondary"
-        sku_name              = "AZFW_VNet"
-        sku_tier              = "Standard"
-        zones                 = ["1", "2", "3"]
-        default_ip_configuration = {
-          public_ip_config = {
-            name  = "pip-fw-hub-secondary"
-            zones = ["1", "2", "3"]
-          }
-        }
-        firewall_policy = {
-          name = "fwp-hub-secondary"
-          dns = {
-            proxy_enabled = true
-          }
-        }
-      }
+      hub_router_ip_address           = "10.1.2.5"
       subnets = {
         bastion = {
           name             = "AzureBastionSubnet"
