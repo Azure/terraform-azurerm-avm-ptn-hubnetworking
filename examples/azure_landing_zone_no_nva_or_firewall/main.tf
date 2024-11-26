@@ -58,7 +58,6 @@ module "hub_mesh" {
       mesh_peering_enabled            = true
       route_table_name                = "rt-hub-primary"
       routing_address_space           = ["10.0.0.0/16"]
-      hub_router_ip_address           = "10.0.2.5"
       subnets = {
         bastion = {
           name             = "AzureBastionSubnet"
@@ -90,7 +89,6 @@ module "hub_mesh" {
       mesh_peering_enabled            = true
       route_table_name                = "rt-hub-secondary"
       routing_address_space           = ["10.1.0.0/16"]
-      hub_router_ip_address           = "10.1.2.5"
       subnets = {
         bastion = {
           name             = "AzureBastionSubnet"
@@ -160,9 +158,6 @@ module "spoke1_vnet" {
     spoke1-subnet = {
       name             = "spoke1-subnet"
       address_prefixes = ["10.0.4.0/28"]
-      route_table = {
-        id = module.hub_mesh.hub_route_tables_user_subnets["primary"].id
-      }
     }
   }
 }
@@ -248,9 +243,6 @@ module "spoke2_vnet" {
     spoke2-subnet = {
       name             = "spoke2-subnet"
       address_prefixes = ["10.1.4.0/28"]
-      route_table = {
-        id = module.hub_mesh.hub_route_tables_user_subnets["secondary"].id
-      }
     }
   }
 }

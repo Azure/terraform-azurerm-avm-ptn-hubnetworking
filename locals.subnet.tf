@@ -58,7 +58,7 @@ locals {
         service_endpoints                             = subnet.service_endpoints
         service_endpoint_policies                     = try(local.service_endpoint_policy_map[k][subnetKey], null)
         delegation                                    = subnet.delegations
-        route_table                                   = try(subnet.route_table.assign_generated_route_table, true) ? { id = module.hub_routing_user_subnets[k].resource_id } : (try(subnet.route_table.id, null) == null ? null : { id = subnet.route_table.id })
+        route_table                                   = try(subnet.route_table.assign_generated_route_table, true) ? (local.create_route_tables_user_subnets[k] ? { id = module.hub_routing_user_subnets[k].resource_id } : null) : (try(subnet.route_table.id, null) == null ? null : { id = subnet.route_table.id })
       }]
     ]]) : subnet.composite_key => subnet
   }
