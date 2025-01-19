@@ -38,7 +38,7 @@ provider "azurerm" {
 locals {
   regions = {
     primary   = "eastus2"
-    secondary = "westus3"
+    secondary = "eastus2"
   }
 }
 
