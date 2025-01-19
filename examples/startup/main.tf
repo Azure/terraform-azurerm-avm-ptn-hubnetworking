@@ -116,7 +116,7 @@ resource "azurerm_resource_group" "fwpolicy" {
 
 module "fw_policy" {
   source  = "Azure/avm-res-network-firewallpolicy/azurerm"
-  version = "0.2.3"
+  version = "0.3.2"
 
   location            = azurerm_resource_group.fwpolicy.location
   name                = "allow-internal"
@@ -126,7 +126,7 @@ module "fw_policy" {
 
 module "fw_policy_rule_collection_groups" {
   source  = "Azure/avm-res-network-firewallpolicy/azurerm//modules/rule_collection_groups"
-  version = "0.2.3"
+  version = "0.3.2"
 
   firewall_policy_rule_collection_group_firewall_policy_id = module.fw_policy.resource_id
   firewall_policy_rule_collection_group_name               = "allow-rfc1918"
@@ -215,7 +215,7 @@ module "route_table_spoke1" {
 
 module "vm_spoke1" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.15.1"
+  version = "0.18.0"
 
   location                           = azurerm_resource_group.spoke1.location
   name                               = "vm-spoke1"
@@ -327,7 +327,7 @@ module "route_table_spoke_2" {
 
 module "vm_spoke2" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.15.1"
+  version = "0.18.0"
 
   location                           = azurerm_resource_group.spoke2.location
   name                               = "vm-spoke2"
