@@ -10,7 +10,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">=3.7.0, < 4.0"
+      version = "~> 4.0"
     }
     local = {
       source  = "hashicorp/local"
@@ -170,7 +170,7 @@ module "spoke1_vnet" {
 
 module "vm_spoke1" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.15.1"
+  version = "0.18.0"
 
   location                           = azurerm_resource_group.spoke1.location
   name                               = "vm-spoke1"
@@ -255,7 +255,7 @@ module "spoke2_vnet" {
 
 module "vm_spoke2" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.15.1"
+  version = "0.18.0"
 
   location                           = azurerm_resource_group.spoke2.location
   name                               = "vm-spoke2"
@@ -312,7 +312,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9.2)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>=3.7.0, < 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_local"></a> [local](#requirement\_local) (2.3.0)
 
@@ -374,13 +374,13 @@ Version: 0.7.1
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.15.1
+Version: 0.18.0
 
 ### <a name="module_vm_spoke2"></a> [vm\_spoke2](#module\_vm\_spoke2)
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.15.1
+Version: 0.18.0
 
 ## Usage
 

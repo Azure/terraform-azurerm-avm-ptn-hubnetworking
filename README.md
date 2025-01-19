@@ -53,7 +53,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.116, < 5.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
@@ -356,25 +356,25 @@ The following Modules are called:
 
 Source: Azure/avm-res-network-publicipaddress/azurerm
 
-Version: 0.1.2
+Version: 0.2.0
 
 ### <a name="module_fw_management_ips"></a> [fw\_management\_ips](#module\_fw\_management\_ips)
 
 Source: Azure/avm-res-network-publicipaddress/azurerm
 
-Version: 0.1.2
+Version: 0.2.0
 
 ### <a name="module_fw_policies"></a> [fw\_policies](#module\_fw\_policies)
 
 Source: Azure/avm-res-network-firewallpolicy/azurerm
 
-Version: 0.2.3
+Version: 0.3.2
 
 ### <a name="module_hub_firewalls"></a> [hub\_firewalls](#module\_hub\_firewalls)
 
 Source: Azure/avm-res-network-azurefirewall/azurerm
 
-Version: 0.2.2
+Version: 0.3.0
 
 ### <a name="module_hub_routing_firewall"></a> [hub\_routing\_firewall](#module\_hub\_routing\_firewall)
 

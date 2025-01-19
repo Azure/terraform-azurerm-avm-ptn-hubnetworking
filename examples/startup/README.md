@@ -10,7 +10,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">=3.7.0, < 4.0"
+      version = "~> 4.0"
     }
     local = {
       source  = "hashicorp/local"
@@ -122,7 +122,7 @@ resource "azurerm_resource_group" "fwpolicy" {
 
 module "fw_policy" {
   source  = "Azure/avm-res-network-firewallpolicy/azurerm"
-  version = "0.2.3"
+  version = "0.3.2"
 
   location            = azurerm_resource_group.fwpolicy.location
   name                = "allow-internal"
@@ -132,7 +132,7 @@ module "fw_policy" {
 
 module "fw_policy_rule_collection_groups" {
   source  = "Azure/avm-res-network-firewallpolicy/azurerm//modules/rule_collection_groups"
-  version = "0.2.3"
+  version = "0.3.2"
 
   firewall_policy_rule_collection_group_firewall_policy_id = module.fw_policy.resource_id
   firewall_policy_rule_collection_group_name               = "allow-rfc1918"
@@ -221,7 +221,7 @@ module "route_table_spoke1" {
 
 module "vm_spoke1" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.15.1"
+  version = "0.18.0"
 
   location                           = azurerm_resource_group.spoke1.location
   name                               = "vm-spoke1"
@@ -333,7 +333,7 @@ module "route_table_spoke_2" {
 
 module "vm_spoke2" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.15.1"
+  version = "0.18.0"
 
   location                           = azurerm_resource_group.spoke2.location
   name                               = "vm-spoke2"
@@ -390,7 +390,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9.2)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>=3.7.0, < 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_local"></a> [local](#requirement\_local) (2.3.0)
 
@@ -435,13 +435,13 @@ The following Modules are called:
 
 Source: Azure/avm-res-network-firewallpolicy/azurerm
 
-Version: 0.2.3
+Version: 0.3.2
 
 ### <a name="module_fw_policy_rule_collection_groups"></a> [fw\_policy\_rule\_collection\_groups](#module\_fw\_policy\_rule\_collection\_groups)
 
 Source: Azure/avm-res-network-firewallpolicy/azurerm//modules/rule_collection_groups
 
-Version: 0.2.3
+Version: 0.3.2
 
 ### <a name="module_hub_mesh"></a> [hub\_mesh](#module\_hub\_mesh)
 
@@ -477,13 +477,13 @@ Version: 0.7.1
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.15.1
+Version: 0.18.0
 
 ### <a name="module_vm_spoke2"></a> [vm\_spoke2](#module\_vm\_spoke2)
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.15.1
+Version: 0.18.0
 
 ## Usage
 

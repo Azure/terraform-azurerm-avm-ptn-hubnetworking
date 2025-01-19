@@ -1,7 +1,7 @@
 module "hub_firewalls" {
   for_each = local.firewalls
   source   = "Azure/avm-res-network-azurefirewall/azurerm"
-  version  = "0.2.2"
+  version  = "0.3.0"
 
   firewall_sku_name   = each.value.sku_name
   firewall_sku_tier   = each.value.sku_tier
@@ -28,7 +28,7 @@ module "hub_firewalls" {
 module "fw_default_ips" {
   for_each = local.fw_default_ip_configuration_pip
   source   = "Azure/avm-res-network-publicipaddress/azurerm"
-  version  = "0.1.2"
+  version  = "0.2.0"
 
   allocation_method   = "Static"
   location            = each.value.location
@@ -46,7 +46,7 @@ module "fw_default_ips" {
 module "fw_management_ips" {
   for_each = local.fw_management_ip_configuration_pip
   source   = "Azure/avm-res-network-publicipaddress/azurerm"
-  version  = "0.1.2"
+  version  = "0.2.0"
 
   allocation_method   = "Static"
   location            = each.value.location
@@ -64,7 +64,7 @@ module "fw_management_ips" {
 module "fw_policies" {
   for_each = { for vnet_name, fw in local.fw_policies : vnet_name => fw if fw.firewall_policy_id == null }
   source   = "Azure/avm-res-network-firewallpolicy/azurerm"
-  version  = "0.2.3"
+  version  = "0.3.2"
 
   name                                              = each.value.name
   location                                          = var.hub_virtual_networks[each.key].location

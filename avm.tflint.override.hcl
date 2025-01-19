@@ -2,3 +2,7 @@
 rule "required_output_rmfr7" {
   enabled = false
 }
+
+rule "provider_azurerm_version" {
+  enabled = false
+}

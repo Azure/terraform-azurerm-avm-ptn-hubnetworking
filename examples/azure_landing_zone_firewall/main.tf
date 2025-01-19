@@ -4,7 +4,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">=3.7.0, < 4.0"
+      version = "~> 4.0"
     }
     local = {
       source  = "hashicorp/local"
@@ -31,8 +31,8 @@ provider "azurerm" {
 
 locals {
   regions = {
-    primary   = "uksouth"
-    secondary = "northeurope"
+    primary   = "eastus2"
+    secondary = "eastus2"
   }
 }
 
@@ -205,7 +205,7 @@ module "spoke1_vnet" {
 
 module "vm_spoke1" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.15.1"
+  version = "0.18.0"
 
   location                           = azurerm_resource_group.spoke1.location
   name                               = "vm-spoke1"
@@ -293,7 +293,7 @@ module "spoke2_vnet" {
 
 module "vm_spoke2" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.15.1"
+  version = "0.18.0"
 
   location                           = azurerm_resource_group.spoke2.location
   name                               = "vm-spoke2"
