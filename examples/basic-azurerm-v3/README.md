@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-# Simple example for the hub network module
+# Simple example for the hub network module for azurerm v3
 
 This shows how to create and manage hub networks using the minimal, default values from the module.
 
@@ -20,7 +20,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">=3.7.0, < 4.0"
+      version = "~> 3.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -96,7 +96,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9.2)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>=3.7.0, < 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.0)
 
