@@ -1,3 +1,13 @@
+output "firewall_policies" {
+  description = "A curated output of the firewall policies created by this module."
+  value = {
+    for vnet_name, fw_policy in module.fw_policies : vnet_name => {
+      id   = fw_policy.resource_id
+      name = fw_policy.resource.name
+    }
+  }
+}
+
 output "firewalls" {
   description = "A curated output of the firewalls created by this module."
   value = {
@@ -25,7 +35,7 @@ output "hub_route_tables_user_subnets" {
   description = "A curated output of the route tables created by this module."
   value = {
     for vnet_name, rt in module.hub_routing_user_subnets : vnet_name => {
-      name = rt.name
+      name = rt.resource.name
       id   = rt.resource_id
     }
   }

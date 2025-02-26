@@ -328,6 +328,10 @@ Default: `{}`
 
 The following outputs are exported:
 
+### <a name="output_firewall_policies"></a> [firewall\_policies](#output\_firewall\_policies)
+
+Description: A curated output of the firewall policies created by this module.
+
 ### <a name="output_firewalls"></a> [firewalls](#output\_firewalls)
 
 Description: A curated output of the firewalls created by this module.
