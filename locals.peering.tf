@@ -13,7 +13,7 @@ locals {
       allow_forwarded_traffic      = true
       allow_gateway_transit        = true
       use_remote_gateways          = false
-    } if key_from != key_to]
+    } if key_from != key_to && value_from.mesh_peering_enabled]
     ]) : peering.composite_key => peering
   }
 }

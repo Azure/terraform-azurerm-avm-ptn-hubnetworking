@@ -347,6 +347,26 @@ module "vm_spoke2" {
 output "virtual_networks" {
   value = module.hub_mesh.virtual_networks
 }
+
+output "firewall" {
+  value = module.hub_mesh.firewalls
+}
+
+output "firewall_policies" {
+  value = module.hub_mesh.firewall_policies
+}
+
+output "route_tables_firewall" {
+  value = module.hub_mesh.hub_route_tables_firewall
+}
+
+output "route_tables_user_subnets" {
+  value = module.hub_mesh.hub_route_tables_user_subnets
+}
+
+output "resource_groups" {
+  value = module.hub_mesh.resource_groups
+}
 ```
 
 <!-- markdownlint-disable MD033 -->
@@ -387,6 +407,26 @@ No optional inputs.
 ## Outputs
 
 The following outputs are exported:
+
+### <a name="output_firewall"></a> [firewall](#output\_firewall)
+
+Description: n/a
+
+### <a name="output_firewall_policies"></a> [firewall\_policies](#output\_firewall\_policies)
+
+Description: n/a
+
+### <a name="output_resource_groups"></a> [resource\_groups](#output\_resource\_groups)
+
+Description: n/a
+
+### <a name="output_route_tables_firewall"></a> [route\_tables\_firewall](#output\_route\_tables\_firewall)
+
+Description: n/a
+
+### <a name="output_route_tables_user_subnets"></a> [route\_tables\_user\_subnets](#output\_route\_tables\_user\_subnets)
+
+Description: n/a
 
 ### <a name="output_virtual_networks"></a> [virtual\_networks](#output\_virtual\_networks)
 
