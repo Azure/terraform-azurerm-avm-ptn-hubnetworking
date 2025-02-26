@@ -349,7 +349,7 @@ output "virtual_networks" {
 }
 
 output "firewall" {
-  value = module.hub_mesh.firewall
+  value = module.hub_mesh.firewalls
 }
 
 output "firewall_policies" {
