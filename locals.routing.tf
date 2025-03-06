@@ -50,7 +50,7 @@ locals {
       for k_src, v_src in var.hub_virtual_networks : [
         for route_table_entry in v_src.route_table_entries_firewall : {
           virtual_network_key    = k_src
-          name                   = "${k_src}-${v_src.name}-${route_table_entry.name}"
+          name                   = route_table_entry.name
           address_prefix         = route_table_entry.address_prefix
           next_hop_type          = route_table_entry.next_hop_type
           next_hop_in_ip_address = route_table_entry.next_hop_ip_address
@@ -96,7 +96,7 @@ locals {
       for k_src, v_src in var.hub_virtual_networks : [
         for route_table_entry in v_src.route_table_entries_user_subnets : {
           virtual_network_key    = k_src
-          name                   = "${k_src}-${v_src.name}-${route_table_entry.name}"
+          name                   = route_table_entry.name
           address_prefix         = route_table_entry.address_prefix
           next_hop_type          = route_table_entry.next_hop_type
           next_hop_in_ip_address = route_table_entry.next_hop_ip_address
