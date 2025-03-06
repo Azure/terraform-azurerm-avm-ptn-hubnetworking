@@ -40,10 +40,10 @@ locals {
       location            = vnet.location
       name                = try(vnet.firewall.management_ip_configuration.public_ip_config.name, "pip-fw-mgmt-${vnet_name}")
       resource_group_name = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
-      ip_version          = try(vnet.firewall.management_ip_coniguration.public_ip_config.ip_version, "IPv4")
-      sku_tier            = try(vnet.firewall.management_ip_coniguration.public_ip_config.sku_tier, "Regional")
+      ip_version          = try(vnet.firewall.management_ip_configuration.public_ip_config.ip_version, "IPv4")
+      sku_tier            = try(vnet.firewall.management_ip_configuration.public_ip_config.sku_tier, "Regional")
       tags                = vnet.firewall.tags
-      zones               = try(vnet.firewall.management_ip_coniguration.public_ip_config.zones, null)
+      zones               = try(vnet.firewall.management_ip_configuration.public_ip_config.zones, null)
     } if try(vnet.firewall.sku_tier, "FirewallNull") == "Basic" && vnet.firewall != null
   }
   fw_policies = {
