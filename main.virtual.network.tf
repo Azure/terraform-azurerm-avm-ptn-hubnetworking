@@ -39,6 +39,7 @@ module "hub_virtual_network_subnets" {
   service_endpoint_policies                     = each.value.service_endpoint_policies
   delegation                                    = each.value.delegation
   route_table                                   = each.value.route_table
+  default_outbound_access_enabled               = each.value.default_outbound_access_enabled
 }
 
 module "hub_virtual_network_peering" {

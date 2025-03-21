@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-# Simple example for the hub network module for azurerm v3
+# Simple example for the hub network module for azurerm v4
 
 This shows how to create and manage hub networks using the minimal, default values from the module.
 
@@ -20,7 +20,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "~> 4.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -57,6 +57,11 @@ module "hub" {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
+        default_ip_configuration = {
+          public_ip_config = {
+            zones = ["1", "2", "3"]
+          }
+        }
       }
       subnets = {
         server-subnet = {
@@ -96,7 +101,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9.2)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.0)
 

@@ -63,6 +63,11 @@ module "hub_mesh" {
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
         firewall_policy_id    = module.fw_policy.resource_id
+        default_ip_configuration = {
+          public_ip_config = {
+            zones = ["1", "2", "3"]
+          }
+        }
       }
       subnets = {
         test-subnet = {
@@ -86,6 +91,11 @@ module "hub_mesh" {
         sku_tier              = "Standard"
         subnet_address_prefix = "10.1.1.0/24"
         firewall_policy_id    = module.fw_policy.resource_id
+        default_ip_configuration = {
+          public_ip_config = {
+            zones = ["1", "2", "3"]
+          }
+        }
       }
       subnets = {
         test-subnet = {
@@ -247,7 +257,7 @@ module "vm_spoke1" {
 
   os_disk = {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
   }
 
   source_image_reference = {
@@ -352,8 +362,6 @@ module "vm_spoke2" {
           name                          = "nic"
           private_ip_address_allocation = "Dynamic"
           private_ip_subnet_resource_id = module.spoke2_vnet.subnets["spoke2-subnet"].resource_id
-          create_public_ip_address      = true
-          public_ip_address_name        = "vm1-pip"
         }
       }
     }
@@ -361,7 +369,7 @@ module "vm_spoke2" {
 
   os_disk = {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
   }
 
   source_image_reference = {

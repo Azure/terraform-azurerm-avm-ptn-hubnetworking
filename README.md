@@ -158,6 +158,7 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
     - `service_delegation` - An object with the following fields:
       - `name` - The name of the service delegation.
       - `actions` - A list of actions that should be delegated, the list is specific to the service being delegated.
+  - `default_outbound_access_enabled` - (Optional) Should the default outbound access be enabled for the subnet? Default `false`.
 
 #### Azure Firewall
 
@@ -165,8 +166,10 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
   - `sku_name` - The name of the SKU to use for the Azure Firewall. Possible values include `AZFW_Hub`, `AZFW_VNet`.
   - `sku_tier` - The tier of the SKU to use for the Azure Firewall. Possible values include `Basic`, `Standard`, `Premium`.
   - `subnet_address_prefix` - The IPv4 address prefix to use for the Azure Firewall subnet in CIDR format. Needs to be a part of the virtual network's address space.
+  - `subnet_default_outbound_access_enabled` - (Optional) Should the default outbound access be enabled for the Azure Firewall subnet? Default `false`.
   - `firewall_policy_id` - (Optional) The resource id of the Azure Firewall Policy to associate with the Azure Firewall.
   - `management_subnet_address_prefix` - (Optional) The IPv4 address prefix to use for the Azure Firewall management subnet in CIDR format. Needs to be a part of the virtual network's address space.
+  - `management_subnet_default_outbound_access_enabled` - (Optional) Should the default outbound access be enabled for the Azure Firewall management subnet? Default `false`.
   - `name` - (Optional) The name of the firewall resource. If not specified will use `afw-{vnetname}`.
   - `private_ip_ranges` - (Optional) A list of private IP ranges to use for the Azure Firewall, to which the firewall will not NAT traffic. If not specified will use RFC1918.
   - `subnet_route_table_id` = (Optional) The resource id of the Route Table which should be associated with the Azure Firewall subnet. If not specified the module will assign the generated route table.
@@ -270,20 +273,23 @@ map(object({
             }
           )
         ))
+        default_outbound_access_enabled = optional(bool, false)
       }
     )), {})
 
     firewall = optional(object({
-      sku_name                         = string
-      sku_tier                         = string
-      subnet_address_prefix            = string
-      firewall_policy_id               = optional(string, null)
-      management_subnet_address_prefix = optional(string, null)
-      name                             = optional(string)
-      private_ip_ranges                = optional(list(string))
-      subnet_route_table_id            = optional(string)
-      tags                             = optional(map(string))
-      zones                            = optional(list(string))
+      sku_name                                          = string
+      sku_tier                                          = string
+      subnet_address_prefix                             = string
+      subnet_default_outbound_access_enabled            = optional(bool, false)
+      firewall_policy_id                                = optional(string, null)
+      management_subnet_address_prefix                  = optional(string, null)
+      management_subnet_default_outbound_access_enabled = optional(bool, false)
+      name                                              = optional(string)
+      private_ip_ranges                                 = optional(list(string))
+      subnet_route_table_id                             = optional(string)
+      tags                                              = optional(map(string))
+      zones                                             = optional(list(string))
       default_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({

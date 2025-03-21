@@ -62,8 +62,8 @@ output "virtual_networks" {
       virtual_network_resource_id = vnet_mod.resource.id
       location                    = var.hub_virtual_networks[vnet_key].location
       address_spaces              = var.hub_virtual_networks[vnet_key].address_space
-      subnets                     = { for subnet_key, subnet_value in local.subnets : subnet_key => module.hub_virtual_network_subnets[subnet_key] if subnet_value.virtual_newtork_key == vnet_key }
-      subnet_ids                  = { for subnet_key, subnet_value in local.subnets : subnet_key => module.hub_virtual_network_subnets[subnet_key].resource_id if subnet_value.virtual_newtork_key == vnet_key }
+      subnets                     = { for subnet_key, subnet_value in local.subnets : subnet_key => module.hub_virtual_network_subnets[subnet_key] if subnet_value.virtual_network_key == vnet_key }
+      subnet_ids                  = { for subnet_key, subnet_value in local.subnets : subnet_key => module.hub_virtual_network_subnets[subnet_key].resource_id if subnet_value.virtual_network_key == vnet_key }
       hub_router_ip_address       = try(module.hub_firewalls[vnet_key].resource.ip_configuration[0].private_ip_address, var.hub_virtual_networks[vnet_key].hub_router_ip_address)
     }
   }

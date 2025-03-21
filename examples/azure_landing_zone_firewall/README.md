@@ -102,6 +102,11 @@ module "hub_mesh" {
           name             = "hub-user-subnet"
           address_prefixes = ["10.0.2.0/24"]
         }
+        outbound = {
+          name                            = "hub-outbound-subnet"
+          address_prefixes                = ["10.0.3.0/24"]
+          default_outbound_access_enabled = true
+        }
       }
     }
     secondary = {
@@ -243,7 +248,7 @@ module "vm_spoke1" {
 
   os_disk = {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
   }
 
   source_image_reference = {
@@ -324,8 +329,6 @@ module "vm_spoke2" {
           name                          = "nic"
           private_ip_address_allocation = "Dynamic"
           private_ip_subnet_resource_id = module.spoke2_vnet.subnets["spoke2-subnet"].resource_id
-          create_public_ip_address      = true
-          public_ip_address_name        = "vm1-pip"
         }
       }
     }
@@ -333,7 +336,7 @@ module "vm_spoke2" {
 
   os_disk = {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
   }
 
   source_image_reference = {
