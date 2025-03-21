@@ -280,8 +280,6 @@ module "vm_spoke2" {
           name                          = "nic"
           private_ip_address_allocation = "Dynamic"
           private_ip_subnet_resource_id = module.spoke2_vnet.subnets["spoke2-subnet"].resource_id
-          create_public_ip_address      = true
-          public_ip_address_name        = "vm1-pip"
         }
       }
     }
