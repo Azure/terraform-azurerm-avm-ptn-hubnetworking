@@ -51,6 +51,11 @@ module "hub" {
         sku_name              = "AZFW_VNet"
         sku_tier              = "Standard"
         subnet_address_prefix = "10.0.1.0/24"
+        default_ip_configuration = {
+          public_ip_config = {
+            zones = ["1", "2", "3"]
+          }
+        }
       }
       subnets = {
         server-subnet = {
