@@ -102,6 +102,11 @@ module "hub_mesh" {
           name             = "hub-user-subnet"
           address_prefixes = ["10.0.2.0/24"]
         }
+        outbound = {
+          name                            = "hub-outbound-subnet"
+          address_prefixes                = ["10.0.3.0/24"]
+          default_outbound_access_enabled = true
+        }
       }
     }
     secondary = {
