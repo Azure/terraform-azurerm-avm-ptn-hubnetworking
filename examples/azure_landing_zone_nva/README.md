@@ -207,7 +207,7 @@ module "vm_spoke1" {
 
   os_disk = {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium"
   }
 
   source_image_reference = {
@@ -297,7 +297,7 @@ module "vm_spoke2" {
 
   os_disk = {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium"
   }
 
   source_image_reference = {
