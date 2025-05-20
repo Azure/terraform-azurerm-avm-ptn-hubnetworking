@@ -41,6 +41,11 @@ output "hub_route_tables_user_subnets" {
   }
 }
 
+output "name" {
+  description = "The names of the hub virtual networks."
+  value       = { for key, value in module.hub_virtual_networks : key => value.name }
+}
+
 output "resource_groups" {
   description = "A curated output of the resource groups created by this module."
   value = {
@@ -50,6 +55,11 @@ output "resource_groups" {
       id       = rg.id
     }
   }
+}
+
+output "resource_id" {
+  description = "The resource IDs of the hub virtual networks."
+  value       = { for key, value in module.hub_virtual_networks : key => value.resource_id }
 }
 
 output "virtual_networks" {
