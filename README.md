@@ -110,6 +110,7 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
 - `dns_servers` - A list of DNS servers IP addresses for the virtual network.
 - `flow_timeout_in_minutes` - The flow timeout in minutes for the virtual network. Default `4`.
 - `mesh_peering_enabled` - Should the virtual network be peered to other hub networks with this flag enabled? Default `true`.
+- `peering_names` - A map of the names of the peering connections to create between this virtual network and other hub networks. The key is the key of the peered hub network, and the value is the name of the peering connection.
 - `resource_group_creation_enabled` - Should the resource group for this virtual network be created by this module? Default `true`.
 - `resource_group_lock_enabled` - Should the resource group for this virtual network be locked? Default `true`.
 - `resource_group_lock_name` - The name of the resource group lock.
@@ -218,6 +219,7 @@ map(object({
     dns_servers                     = optional(list(string))
     flow_timeout_in_minutes         = optional(number, 4)
     mesh_peering_enabled            = optional(bool, true)
+    peering_names                   = optional(map(string))
     resource_group_creation_enabled = optional(bool, true)
     resource_group_lock_enabled     = optional(bool, true)
     resource_group_lock_name        = optional(string)
@@ -350,9 +352,17 @@ Description: A curated output of the route tables created by this module.
 
 Description: A curated output of the route tables created by this module.
 
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The names of the hub virtual networks.
+
 ### <a name="output_resource_groups"></a> [resource\_groups](#output\_resource\_groups)
 
 Description: A curated output of the resource groups created by this module.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The resource IDs of the hub virtual networks.
 
 ### <a name="output_virtual_networks"></a> [virtual\_networks](#output\_virtual\_networks)
 

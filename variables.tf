@@ -22,6 +22,7 @@ variable "hub_virtual_networks" {
     dns_servers                     = optional(list(string))
     flow_timeout_in_minutes         = optional(number, 4)
     mesh_peering_enabled            = optional(bool, true)
+    peering_names                   = optional(map(string))
     resource_group_creation_enabled = optional(bool, true)
     resource_group_lock_enabled     = optional(bool, true)
     resource_group_lock_name        = optional(string)
@@ -148,6 +149,7 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
 - `dns_servers` - A list of DNS servers IP addresses for the virtual network.
 - `flow_timeout_in_minutes` - The flow timeout in minutes for the virtual network. Default `4`.
 - `mesh_peering_enabled` - Should the virtual network be peered to other hub networks with this flag enabled? Default `true`.
+- `peering_names` - A map of the names of the peering connections to create between this virtual network and other hub networks. The key is the key of the peered hub network, and the value is the name of the peering connection.
 - `resource_group_creation_enabled` - Should the resource group for this virtual network be created by this module? Default `true`.
 - `resource_group_lock_enabled` - Should the resource group for this virtual network be locked? Default `true`.
 - `resource_group_lock_name` - The name of the resource group lock.

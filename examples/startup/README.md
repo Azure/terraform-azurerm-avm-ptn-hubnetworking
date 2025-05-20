@@ -53,6 +53,7 @@ resource "random_pet" "rand" {}
 
 module "hub_mesh" {
   source = "../.."
+
   hub_virtual_networks = {
     primary-hub = {
       name                            = "primary"
@@ -146,8 +147,6 @@ module "fw_policy_rule_collection_groups" {
 
   firewall_policy_rule_collection_group_firewall_policy_id = module.fw_policy.resource_id
   firewall_policy_rule_collection_group_name               = "allow-rfc1918"
-  firewall_policy_rule_collection_group_priority           = 100
-
   firewall_policy_rule_collection_group_network_rule_collection = [{
     action   = "Allow"
     name     = "rfc1918"
@@ -161,6 +160,7 @@ module "fw_policy_rule_collection_groups" {
       source_addresses      = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
     }]
   }]
+  firewall_policy_rule_collection_group_priority = 100
 }
 
 # Spoke 1
@@ -173,11 +173,10 @@ module "spoke1_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
   version = "0.7.1"
 
-  name                = "vnet-spoke1-${random_pet.rand.id}"
   address_space       = ["192.168.0.0/24"]
-  resource_group_name = azurerm_resource_group.spoke1.name
   location            = azurerm_resource_group.spoke1.location
-
+  resource_group_name = azurerm_resource_group.spoke1.name
+  name                = "vnet-spoke1-${random_pet.rand.id}"
   peerings = {
     "spoke1-peering" = {
       name                                 = "spoke1-peering"
@@ -212,7 +211,6 @@ module "route_table_spoke1" {
   location            = azurerm_resource_group.spoke1.location
   name                = "rt-spoke1"
   resource_group_name = azurerm_resource_group.spoke1.name
-
   routes = {
     spoke1_to_hub = {
       address_prefix         = "192.168.0.0/16"
@@ -233,21 +231,8 @@ module "vm_spoke1" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "0.18.0"
 
-  location                           = azurerm_resource_group.spoke1.location
-  name                               = "vm-spoke1"
-  resource_group_name                = azurerm_resource_group.spoke1.name
-  zone                               = 1
-  admin_username                     = "adminuser"
-  generate_admin_password_or_ssh_key = false
-
-  admin_ssh_keys = [{
-    public_key = tls_private_key.key.public_key_openssh
-    username   = "adminuser"
-  }]
-
-  os_type  = "linux"
-  sku_size = "Standard_B1s"
-
+  location = azurerm_resource_group.spoke1.location
+  name     = "vm-spoke1"
   network_interfaces = {
     network_interface_1 = {
       name = "internal"
@@ -260,12 +245,20 @@ module "vm_spoke1" {
       }
     }
   }
-
+  resource_group_name = azurerm_resource_group.spoke1.name
+  zone                = 1
+  admin_ssh_keys = [{
+    public_key = tls_private_key.key.public_key_openssh
+    username   = "adminuser"
+  }]
+  admin_username                     = "adminuser"
+  generate_admin_password_or_ssh_key = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
-
+  os_type  = "linux"
+  sku_size = "Standard_B1s"
   source_image_reference = {
     offer     = "0001-com-ubuntu-server-jammy"
     publisher = "Canonical"
@@ -285,11 +278,10 @@ module "spoke2_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
   version = "0.7.1"
 
-  name                = "vnet-spoke2-${random_pet.rand.id}"
   address_space       = ["192.168.1.0/24"]
-  resource_group_name = azurerm_resource_group.spoke2.name
   location            = azurerm_resource_group.spoke2.location
-
+  resource_group_name = azurerm_resource_group.spoke2.name
+  name                = "vnet-spoke2-${random_pet.rand.id}"
   peerings = {
     "spoke2-peering" = {
       name                                 = "spoke2-peering"
@@ -324,7 +316,6 @@ module "route_table_spoke_2" {
   location            = azurerm_resource_group.spoke2.location
   name                = "rt-spoke2"
   resource_group_name = azurerm_resource_group.spoke2.name
-
   routes = {
     spoke2_to_hub = {
       address_prefix         = "192.168.0.0/16"
@@ -345,21 +336,8 @@ module "vm_spoke2" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "0.18.0"
 
-  location                           = azurerm_resource_group.spoke2.location
-  name                               = "vm-spoke2"
-  resource_group_name                = azurerm_resource_group.spoke2.name
-  zone                               = 1
-  admin_username                     = "adminuser"
-  generate_admin_password_or_ssh_key = false
-
-  admin_ssh_keys = [{
-    public_key = tls_private_key.key.public_key_openssh
-    username   = "adminuser"
-  }]
-
-  os_type  = "linux"
-  sku_size = "Standard_B1s"
-
+  location = azurerm_resource_group.spoke2.location
+  name     = "vm-spoke2"
   network_interfaces = {
     network_interface_1 = {
       name = "nic"
@@ -372,12 +350,20 @@ module "vm_spoke2" {
       }
     }
   }
-
+  resource_group_name = azurerm_resource_group.spoke2.name
+  zone                = 1
+  admin_ssh_keys = [{
+    public_key = tls_private_key.key.public_key_openssh
+    username   = "adminuser"
+  }]
+  admin_username                     = "adminuser"
+  generate_admin_password_or_ssh_key = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
-
+  os_type  = "linux"
+  sku_size = "Standard_B1s"
   source_image_reference = {
     offer     = "0001-com-ubuntu-server-jammy"
     publisher = "Canonical"
@@ -386,9 +372,6 @@ module "vm_spoke2" {
   }
 }
 
-output "virtual_networks" {
-  value = module.hub_mesh.virtual_networks
-}
 ```
 
 <!-- markdownlint-disable MD033 -->
