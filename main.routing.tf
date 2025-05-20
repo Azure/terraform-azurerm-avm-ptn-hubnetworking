@@ -1,14 +1,14 @@
 module "hub_routing_firewall" {
-  for_each = local.route_tables_firewall
   source   = "Azure/avm-res-network-routetable/azurerm"
   version  = "0.3.1"
+  for_each = local.route_tables_firewall
 
   location                      = each.value.location
   name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name_firewall, "rt-firewall-${each.key}")
   resource_group_name           = try(each.value.resource_group_name, azurerm_resource_group.rg[each.key].name)
   bgp_route_propagation_enabled = true
-  tags                          = each.value.tags
   enable_telemetry              = var.enable_telemetry
+  tags                          = each.value.tags
 }
 
 resource "azurerm_route" "firewall_default" {
@@ -34,16 +34,16 @@ resource "azurerm_route" "firewall_mesh" {
 }
 
 module "hub_routing_user_subnets" {
-  for_each = local.route_tables_user_subnets
   source   = "Azure/avm-res-network-routetable/azurerm"
   version  = "0.3.1"
+  for_each = local.route_tables_user_subnets
 
   location                      = each.value.location
   name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name_user_subnets, "rt-user-subnets-${each.key}")
   resource_group_name           = try(each.value.resource_group_name, azurerm_resource_group.rg[each.key].name)
   bgp_route_propagation_enabled = true
-  tags                          = each.value.tags
   enable_telemetry              = var.enable_telemetry
+  tags                          = each.value.tags
 }
 
 resource "azurerm_route" "user_subnets" {
