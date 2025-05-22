@@ -8,7 +8,7 @@ module "hub_routing_firewall" {
   resource_group_name           = try(each.value.resource_group_name, azurerm_resource_group.rg[each.key].name)
   bgp_route_propagation_enabled = true
   enable_telemetry              = var.enable_telemetry
-  tags                          = each.value.tags
+  tags                          = length(each.value.tags) == 0 ? var.tags : each.value.tags
 }
 
 resource "azurerm_route" "firewall_default" {
@@ -43,7 +43,7 @@ module "hub_routing_user_subnets" {
   resource_group_name           = try(each.value.resource_group_name, azurerm_resource_group.rg[each.key].name)
   bgp_route_propagation_enabled = true
   enable_telemetry              = var.enable_telemetry
-  tags                          = each.value.tags
+  tags                          = length(each.value.tags) == 0 ? var.tags : each.value.tags
 }
 
 resource "azurerm_route" "user_subnets" {

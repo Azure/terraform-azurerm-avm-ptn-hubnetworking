@@ -3,7 +3,7 @@ resource "azurerm_resource_group" "rg" {
 
   location = each.value.location
   name     = each.value.name
-  tags     = each.value.tags
+  tags     = length(each.value.tags) == 0 ? var.tags : each.value.tags
 }
 
 resource "azurerm_management_lock" "rg_lock" {

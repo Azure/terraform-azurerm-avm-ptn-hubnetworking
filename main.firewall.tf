@@ -22,7 +22,7 @@ module "hub_firewalls" {
   firewall_policy_id         = each.value.firewall_policy_id
   firewall_private_ip_ranges = each.value.private_ip_ranges
   firewall_zones             = each.value.zones
-  tags                       = each.value.tags
+  tags                       = length(each.value.tags) == 0 ? var.tags : each.value.tags
 }
 
 module "fw_default_ips" {
@@ -38,7 +38,7 @@ module "fw_default_ips" {
   ip_version          = each.value.ip_version
   sku                 = "Standard"
   sku_tier            = each.value.sku_tier
-  tags                = each.value.tags
+  tags                = length(each.value.tags) == 0 ? var.tags : each.value.tags
   zones               = each.value.zones
 }
 
@@ -55,7 +55,7 @@ module "fw_management_ips" {
   ip_version          = each.value.ip_version
   sku                 = "Standard"
   sku_tier            = each.value.sku_tier
-  tags                = each.value.tags
+  tags                = length(each.value.tags) == 0 ? var.tags : each.value.tags
   zones               = each.value.zones
 }
 
@@ -75,5 +75,5 @@ module "fw_policies" {
   firewall_policy_sku                               = each.value.sku
   firewall_policy_threat_intelligence_allowlist     = each.value.threat_intelligence_allowlist
   firewall_policy_threat_intelligence_mode          = each.value.threat_intelligence_mode
-  tags                                              = each.value.tags
+  tags                                              = length(each.value.tags) == 0 ? var.tags : each.value.tags
 }
