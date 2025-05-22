@@ -29,7 +29,7 @@ variable "hub_virtual_networks" {
     resource_group_tags             = optional(map(string))
     routing_address_space           = optional(list(string), [])
     hub_router_ip_address           = optional(string)
-    tags                            = optional(map(string), {})
+    tags                            = optional(map(string))
 
     route_table_entries_firewall = optional(set(object({
       name           = string
