@@ -63,14 +63,22 @@ module "hub_mesh" {
       route_table_name      = "rt-hub-primary"
       routing_address_space = ["10.0.0.0/16"]
       firewall = {
-        subnet_address_prefix = "10.0.0.0/26"
-        name                  = "fw-hub-primary"
-        sku_name              = "AZFW_VNet"
-        sku_tier              = "Standard"
-        zones                 = ["1", "2", "3"]
+        subnet_address_prefix            = "10.0.0.0/26"
+        management_subnet_address_prefix = "10.0.0.192/26"
+        name                             = "fw-hub-primary"
+        sku_name                         = "AZFW_VNet"
+        sku_tier                         = "Standard"
+        zones                            = ["1", "2", "3"]
         default_ip_configuration = {
           public_ip_config = {
             name  = "pip-fw-hub-primary"
+            zones = ["1", "2", "3"]
+          }
+        }
+        management_ip_configuration = {
+          name = "pip-fw-hub-primary-mgmt"
+          public_ip_config = {
+            name  = "pip-fw-hub-primary-mgmt"
             zones = ["1", "2", "3"]
           }
         }
@@ -121,14 +129,21 @@ module "hub_mesh" {
       route_table_name      = "rt-hub-secondary"
       routing_address_space = ["10.1.0.0/16"]
       firewall = {
-        subnet_address_prefix = "10.1.0.0/26"
-        name                  = "fw-hub-secondary"
-        sku_name              = "AZFW_VNet"
-        sku_tier              = "Standard"
-        zones                 = ["1", "2", "3"]
+        subnet_address_prefix            = "10.1.0.0/26"
+        management_subnet_address_prefix = "10.1.0.192/26"
+        name                             = "fw-hub-secondary"
+        sku_name                         = "AZFW_VNet"
+        sku_tier                         = "Standard"
+        zones                            = ["1", "2", "3"]
         default_ip_configuration = {
           public_ip_config = {
             name  = "pip-fw-hub-secondary"
+            zones = ["1", "2", "3"]
+          }
+        }
+        management_ip_configuration = {
+          public_ip_config = {
+            name  = "pip-fw-mgmt-hub-secondary"
             zones = ["1", "2", "3"]
           }
         }
