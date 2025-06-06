@@ -70,7 +70,7 @@ module "hub_mesh" {
       routing_address_space = ["10.0.0.0/16"]
       firewall = {
         subnet_address_prefix            = "10.0.0.0/26"
-        management_subnet_address_prefix = "10.0.4.0/26"
+        management_subnet_address_prefix = "10.0.0.192/26"
         name                             = "fw-hub-primary"
         sku_name                         = "AZFW_VNet"
         sku_tier                         = "Standard"
@@ -136,7 +136,7 @@ module "hub_mesh" {
       routing_address_space = ["10.1.0.0/16"]
       firewall = {
         subnet_address_prefix            = "10.1.0.0/26"
-        management_subnet_address_prefix = "10.1.4.0/26"
+        management_subnet_address_prefix = "10.1.0.192/26"
         name                             = "fw-hub-secondary"
         sku_name                         = "AZFW_VNet"
         sku_tier                         = "Standard"
