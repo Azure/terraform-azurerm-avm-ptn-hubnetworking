@@ -55,8 +55,6 @@ locals {
       auto_learn_private_ranges_enabled = try(vnet.firewall.firewall_policy.auto_learn_private_ranges_enabled, null)
       base_policy_id                    = try(vnet.firewall.firewall_policy.base_policy_id, null)
       dns                               = try(vnet.firewall.firewall_policy.dns, null)
-      threat_intelligence_mode          = try(vnet.firewall.firewall_policy.threat_intelligence_mode, null)
-      private_ip_ranges                 = try(vnet.firewall.firewall_policy.private_ip_ranges, null)
       threat_intelligence_allowlist     = try(vnet.firewall.firewall_policy.threat_intelligence_allowlist, null)
       explicit_proxy                    = try(vnet.firewall.firewall_policy.explicit_proxy, null)
       identity                          = try(vnet.firewall.firewall_policy.identity, null)
