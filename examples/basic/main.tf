@@ -49,6 +49,11 @@ module "hub" {
             zones = ["1", "2", "3"]
           }
         }
+        management_ip_configuration = {
+          public_ip_config = {
+            zones = ["1", "2", "3"]
+          }
+        }
       }
       subnets = {
         server-subnet = {

@@ -80,6 +80,13 @@ module "hub_mesh" {
             zones = ["1", "2", "3"]
           }
         }
+        management_ip_configuration = {
+          name = "pip-fw-hub-primary-mgmt"
+          public_ip_config = {
+            name  = "pip-fw-hub-primary-mgmt"
+            zones = ["1", "2", "3"]
+          }
+        }
         firewall_policy = {
           name = "fwp-hub-primary"
           dns = {
@@ -135,6 +142,12 @@ module "hub_mesh" {
         default_ip_configuration = {
           public_ip_config = {
             name  = "pip-fw-hub-secondary"
+            zones = ["1", "2", "3"]
+          }
+        }
+        management_ip_configuration = {
+          public_ip_config = {
+            name  = "pip-fw-mgmt-hub-secondary"
             zones = ["1", "2", "3"]
           }
         }

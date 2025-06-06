@@ -75,6 +75,11 @@ module "hub_mesh" {
             zones = ["1", "2", "3"]
           }
         }
+        management_ip_configuration = {
+          public_ip_config = {
+            zones = ["1", "2", "3"]
+          }
+        }
       }
       subnets = {
         test-subnet = {
@@ -99,6 +104,11 @@ module "hub_mesh" {
         subnet_address_prefix = "10.1.1.0/24"
         firewall_policy_id    = module.fw_policy.resource_id
         default_ip_configuration = {
+          public_ip_config = {
+            zones = ["1", "2", "3"]
+          }
+        }
+        management_ip_configuration = {
           public_ip_config = {
             zones = ["1", "2", "3"]
           }
