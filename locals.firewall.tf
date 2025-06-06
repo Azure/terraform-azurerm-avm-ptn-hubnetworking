@@ -55,11 +55,17 @@ locals {
       auto_learn_private_ranges_enabled = try(vnet.firewall.firewall_policy.auto_learn_private_ranges_enabled, null)
       base_policy_id                    = try(vnet.firewall.firewall_policy.base_policy_id, null)
       dns                               = try(vnet.firewall.firewall_policy.dns, null)
-      threat_intelligence_mode          = try(vnet.firewall.firewall_policy.threat_intelligence_mode, null)
-      private_ip_ranges                 = try(vnet.firewall.firewall_policy.private_ip_ranges, null)
       threat_intelligence_allowlist     = try(vnet.firewall.firewall_policy.threat_intelligence_allowlist, null)
-      firewall_policy_id                = try(vnet.firewall.firewall_policy_id, null)
+      explicit_proxy                    = try(vnet.firewall.firewall_policy.explicit_proxy, null)
+      identity                          = try(vnet.firewall.firewall_policy.identity, null)
+      insights                          = try(vnet.firewall.firewall_policy.insights, null)
+      intrusion_detection               = try(vnet.firewall.firewall_policy.intrusion_detection, null)
+      private_ip_ranges                 = try(vnet.firewall.firewall_policy.private_ip_ranges, null)
+      sql_redirect_allowed              = try(vnet.firewall.firewall_policy.sql_redirect_allowed, null)
+      threat_intelligence_mode          = try(vnet.firewall.firewall_policy.threat_intelligence_mode, null)
+      timeouts                          = try(vnet.firewall.firewall_policy.timeouts, null)
+      tls_certificate                   = try(vnet.firewall.firewall_policy.tls_certificate, null)
       tags                              = vnet.firewall.tags
-    } if vnet.firewall != null && try(vnet.firewall.firewall_policy, null) != null
+    } if vnet.firewall != null && try(vnet.firewall.firewall_policy, null) != null && try(vnet.firewall.firewall_policy_id, null) == null
   }
 }

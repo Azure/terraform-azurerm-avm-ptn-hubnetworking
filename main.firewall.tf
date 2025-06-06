@@ -61,8 +61,8 @@ module "fw_management_ips" {
 
 module "fw_policies" {
   source   = "Azure/avm-res-network-firewallpolicy/azurerm"
-  version  = "0.3.2"
-  for_each = { for vnet_name, fw in local.fw_policies : vnet_name => fw if fw.firewall_policy_id == null }
+  version  = "0.3.3"
+  for_each = local.fw_policies
 
   location                                          = var.hub_virtual_networks[each.key].location
   name                                              = each.value.name
@@ -71,9 +71,16 @@ module "fw_policies" {
   firewall_policy_auto_learn_private_ranges_enabled = each.value.auto_learn_private_ranges_enabled
   firewall_policy_base_policy_id                    = each.value.base_policy_id
   firewall_policy_dns                               = each.value.dns
+  firewall_policy_explicit_proxy                    = each.value.explicit_proxy
+  firewall_policy_identity                          = each.value.identity
+  firewall_policy_insights                          = each.value.insights
+  firewall_policy_intrusion_detection               = each.value.intrusion_detection
   firewall_policy_private_ip_ranges                 = each.value.private_ip_ranges
   firewall_policy_sku                               = each.value.sku
+  firewall_policy_sql_redirect_allowed              = each.value.sql_redirect_allowed
   firewall_policy_threat_intelligence_allowlist     = each.value.threat_intelligence_allowlist
   firewall_policy_threat_intelligence_mode          = each.value.threat_intelligence_mode
+  firewall_policy_timeouts                          = each.value.timeouts
+  firewall_policy_tls_certificate                   = each.value.tls_certificate
   tags                                              = each.value.tags == null ? var.tags : each.value.tags
 }
