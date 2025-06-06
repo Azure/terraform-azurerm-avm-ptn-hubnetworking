@@ -47,9 +47,10 @@ module "hub" {
       resource_group_name             = azurerm_resource_group.rg.name
       resource_group_creation_enabled = false
       firewall = {
-        sku_name              = "AZFW_VNet"
-        sku_tier              = "Standard"
-        subnet_address_prefix = "10.0.1.0/24"
+        sku_name                         = "AZFW_VNet"
+        sku_tier                         = "Standard"
+        subnet_address_prefix            = "10.0.1.0/24"
+        management_subnet_address_prefix = "10.0.2.0/24"
         default_ip_configuration = {
           public_ip_config = {
             zones = ["1", "2", "3"]
