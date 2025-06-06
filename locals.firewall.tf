@@ -66,6 +66,6 @@ locals {
       timeouts                          = try(vnet.firewall.firewall_policy.timeouts, null)
       tls_certificate                   = try(vnet.firewall.firewall_policy.tls_certificate, null)
       tags                              = vnet.firewall.tags
-    } if vnet.firewall != null && try(vnet.firewall.firewall_policy, null) != null
+    } if vnet.firewall != null && try(vnet.firewall.firewall_policy, null) != null && try(vnet.firewall.firewall_policy_id, null) == null
   }
 }

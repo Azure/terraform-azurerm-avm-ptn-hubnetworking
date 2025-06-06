@@ -62,7 +62,7 @@ module "fw_management_ips" {
 module "fw_policies" {
   source   = "Azure/avm-res-network-firewallpolicy/azurerm"
   version  = "0.3.3"
-  for_each = { for vnet_name, fw in local.fw_policies : vnet_name => fw if fw.firewall_policy_id == null }
+  for_each = local.fw_policies
 
   location                                          = var.hub_virtual_networks[each.key].location
   name                                              = each.value.name
