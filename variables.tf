@@ -122,11 +122,56 @@ variable "hub_virtual_networks" {
           proxy_enabled = optional(bool, false)
           servers       = optional(list(string))
         }))
-        threat_intelligence_mode = optional(string, "Alert")
+        explicit_proxy = optional(object({
+          enable_pac_file = optional(bool)
+          enabled         = optional(bool)
+          http_port       = optional(number)
+          https_port      = optional(number)
+          pac_file        = optional(string)
+          pac_file_port   = optional(number)
+        }))
+        identity = optional(object({
+          type         = string
+          identity_ids = optional(set(string))
+        }))
+        insights = optional(object({
+          default_log_analytics_workspace_id = string
+          enabled                            = bool
+          retention_in_days                  = optional(number)
+          log_analytics_workspace = optional(list(object({
+            firewall_location = string
+            id                = string
+          })))
+        }))
+        intrusion_detection = optional(object({
+          mode           = optional(string)
+          private_ranges = optional(list(string))
+          signature_overrides = optional(list(object({
+            id    = optional(string)
+            state = optional(string)
+          })))
+          traffic_bypass = optional(list(object({
+            description           = optional(string)
+            destination_addresses = optional(set(string))
+            destination_ip_groups = optional(set(string))
+            destination_ports     = optional(set(string))
+            name                  = string
+            protocol              = string
+            source_addresses      = optional(set(string))
+            source_ip_groups      = optional(set(string))
+          })))
+        }))
         private_ip_ranges        = optional(list(string))
+        sql_redirect_allowed     = optional(bool, false)
+        threat_intelligence_mode = optional(string, "Alert")
+
         threat_intelligence_allowlist = optional(object({
           fqdns        = optional(set(string))
           ip_addresses = optional(set(string))
+        }))
+        tls_certificate = optional(object({
+          key_vault_secret_id = string
+          name                = string
         }))
       }))
     }))
