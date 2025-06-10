@@ -16,7 +16,7 @@ module "hub_firewalls" {
   }]
   firewall_management_ip_configuration = each.value.management_ip_enabled ? null : {
     name                 = each.value.management_ip_configuration.name
-    public_ip_address_id = module.fw_management_ips[each.key].public_ip_id
+    public_ip_address_id = try(module.fw_management_ips[each.key].public_ip_id, null)
     subnet_id            = try(module.hub_virtual_network_subnets["${each.key}-${local.firewall_management_subnet_name}"].resource_id, null)
   }
   firewall_policy_id         = each.value.firewall_policy_id
