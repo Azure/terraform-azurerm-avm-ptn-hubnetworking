@@ -19,7 +19,7 @@ locals {
         name = try(coalesce(vnet.firewall.default_ip_configuration.name, "default"), "default")
       }
       management_ip_enabled = try(vnet.firewall.management_ip_enabled, true)
-      management_ip_configuration = try(vnet.firewall.management_ip_enabled, true) ? {} : {
+      management_ip_configuration = {
         name = try(coalesce(vnet.firewall.management_ip_configuration.name, "defaultMgmt"), "defaultMgmt")
       }
       zones = vnet.firewall.zones
