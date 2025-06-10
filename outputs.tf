@@ -62,6 +62,10 @@ output "resource_id" {
   value       = { for key, value in module.hub_virtual_networks : key => value.resource_id }
 }
 
+output "test" {
+  value = local.firewalls
+}
+
 output "virtual_networks" {
   description = "A curated output of the virtual networks created by this module."
   value = {

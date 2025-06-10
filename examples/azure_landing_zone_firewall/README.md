@@ -38,7 +38,7 @@ provider "azurerm" {
 locals {
   regions = {
     primary   = "eastus2"
-    secondary = "westus2"
+    secondary = "swedencentral"
   }
 }
 
@@ -405,11 +405,11 @@ No optional inputs.
 
 The following outputs are exported:
 
-### <a name="output_firewall"></a> [firewall](#output\_firewall)
+### <a name="output_firewall_policies"></a> [firewall\_policies](#output\_firewall\_policies)
 
 Description: n/a
 
-### <a name="output_firewall_policies"></a> [firewall\_policies](#output\_firewall\_policies)
+### <a name="output_firewalls"></a> [firewalls](#output\_firewalls)
 
 Description: n/a
 

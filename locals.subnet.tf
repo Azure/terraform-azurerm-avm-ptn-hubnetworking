@@ -18,7 +18,7 @@ locals {
       route_table                                   = null
       default_outbound_access_enabled               = v.firewall.management_subnet_default_outbound_access_enabled
     }
-    if v.firewall != null && try(v.firewall.management_subnet_enabled, true)
+    if v.firewall != null && try(v.firewall.management_ip_enabled, true)
   }
   firewall_route_table_ids = {
     # NOTE: For the destroy, you cannot delete the default route before removing the route table from the AzureFirewallSubnet.
