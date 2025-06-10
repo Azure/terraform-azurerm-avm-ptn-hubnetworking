@@ -32,7 +32,7 @@ provider "azurerm" {
 locals {
   regions = {
     primary   = "eastus2"
-    secondary = "eastus2"
+    secondary = "swedencentral"
   }
 }
 
@@ -75,6 +75,7 @@ module "hub_mesh" {
             zones = ["1", "2", "3"]
           }
         }
+        management_ip_enabled = true
         management_ip_configuration = {
           name = "pip-fw-hub-primary-mgmt"
           public_ip_config = {
@@ -141,6 +142,7 @@ module "hub_mesh" {
             zones = ["1", "2", "3"]
           }
         }
+        management_ip_enabled = false
         management_ip_configuration = {
           public_ip_config = {
             name  = "pip-fw-mgmt-hub-secondary"

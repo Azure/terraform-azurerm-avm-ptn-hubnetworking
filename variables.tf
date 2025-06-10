@@ -88,6 +88,7 @@ variable "hub_virtual_networks" {
       subnet_address_prefix                             = string
       subnet_default_outbound_access_enabled            = optional(bool, false)
       firewall_policy_id                                = optional(string, null)
+      management_ip_enabled                             = optional(bool, true)
       management_subnet_address_prefix                  = optional(string, null)
       management_subnet_default_outbound_access_enabled = optional(bool, false)
       name                                              = optional(string)
@@ -253,6 +254,7 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
   - `subnet_address_prefix` - The IPv4 address prefix to use for the Azure Firewall subnet in CIDR format. Needs to be a part of the virtual network's address space.
   - `subnet_default_outbound_access_enabled` - (Optional) Should the default outbound access be enabled for the Azure Firewall subnet? Default `false`.
   - `firewall_policy_id` - (Optional) The resource id of the Azure Firewall Policy to associate with the Azure Firewall.
+  - `management_ip_enabled` - (Optional) Should the Azure Firewall management IP be enabled? Default `true`.
   - `management_subnet_address_prefix` - (Optional) The IPv4 address prefix to use for the Azure Firewall management subnet in CIDR format. Needs to be a part of the virtual network's address space.
   - `management_subnet_default_outbound_access_enabled` - (Optional) Should the default outbound access be enabled for the Azure Firewall management subnet? Default `false`.
   - `name` - (Optional) The name of the firewall resource. If not specified will use `afw-{vnetname}`.

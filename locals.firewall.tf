@@ -18,6 +18,7 @@ locals {
       default_ip_configuration = {
         name = try(coalesce(vnet.firewall.default_ip_configuration.name, "default"), "default")
       }
+      management_ip_enabled = try(vnet.firewall.management_ip_enabled, true)
       management_ip_configuration = {
         name = try(coalesce(vnet.firewall.management_ip_configuration.name, "defaultMgmt"), "defaultMgmt")
       }
@@ -44,7 +45,7 @@ locals {
       sku_tier            = try(vnet.firewall.management_ip_configuration.public_ip_config.sku_tier, "Regional")
       tags                = vnet.firewall.tags
       zones               = try(vnet.firewall.management_ip_configuration.public_ip_config.zones, null)
-    } if vnet.firewall != null
+    } if vnet.firewall != null && try(vnet.firewall.management_ip_enabled, true)
   }
   fw_policies = {
     for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {

@@ -42,7 +42,7 @@ locals {
             resource_group_name    = try(v_src.resource_group_name, azurerm_resource_group.rg[k_src].name)
           } if k_src != k_dst && v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0]) && local.create_route_tables_firewall[k_dst]
         ]
-      ] if v_src.mesh_peering_enabled
+      ] if v_src.mesh_peering_enabled && local.create_route_tables_firewall[k_src]
     ]) : route.key => route
   }
   route_table_entries_firewall = {
@@ -88,7 +88,7 @@ locals {
             resource_group_name    = try(v_src.resource_group_name, azurerm_resource_group.rg[k_src].name)
           } if v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0]) && local.create_route_tables_user_subnets[k_dst]
         ]
-      ] if v_src.mesh_peering_enabled
+      ] if v_src.mesh_peering_enabled && local.create_route_tables_user_subnets[k_src]
     ]) : route.key => route
   }
   route_table_entries_user_subnet = {

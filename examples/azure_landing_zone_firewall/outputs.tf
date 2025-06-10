@@ -1,9 +1,9 @@
-output "firewall" {
-  value = module.hub_mesh.firewalls
-}
-
 output "firewall_policies" {
   value = module.hub_mesh.firewall_policies
+}
+
+output "firewalls" {
+  value = module.hub_mesh.firewalls
 }
 
 output "resource_groups" {
