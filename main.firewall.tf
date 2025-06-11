@@ -11,7 +11,7 @@ module "hub_firewalls" {
   enable_telemetry    = var.enable_telemetry
   firewall_ip_configuration = concat([{
     name                 = each.value.default_ip_configuration.name
-    public_ip_address_id = module.fw_default_ips["${each.key}-1"].public_ip_id
+    public_ip_address_id = module.fw_default_ips[each.key].public_ip_id
     subnet_id            = module.hub_virtual_network_subnets["${each.key}-${local.firewall_subnet_name}"].resource_id
     }], [
     for i in range(1, each.value.public_ip_count) : {

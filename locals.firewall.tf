@@ -30,7 +30,7 @@ locals {
     for pair in flatten([
       for vnet_name, vnet in var.hub_virtual_networks : [
         for i in range(vnet.firewall.public_ip_count) : {
-          key       = "${vnet_name}-${i}"
+          key       = "${vnet_name}${i == 0 ? "" : "-${i}"}"
           vnet      = vnet
           index     = i
           vnet_name = vnet_name
