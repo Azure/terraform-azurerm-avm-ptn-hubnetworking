@@ -419,10 +419,6 @@ Description: A curated output of the resource groups created by this module.
 
 Description: The resource IDs of the hub virtual networks.
 
-### <a name="output_test"></a> [test](#output\_test)
-
-Description: n/a
-
 ### <a name="output_virtual_networks"></a> [virtual\_networks](#output\_virtual\_networks)
 
 Description: A curated output of the virtual networks created by this module.
