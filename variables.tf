@@ -265,14 +265,14 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
   - `default_ip_configuration` - (Optional) An object with the following fields. If not specified the defaults below will be used:
     - `name` - (Optional) The name of the default IP configuration. If not specified will use `default`.
     - `public_ip_config` - (Optional) An object with the following fields:
-      - `name` - (Optional) The name of the public IP configuration. If not specified will use `pip-afw-{vnetname}`.
+      - `name` - (Optional) The name of the public IP configuration. If not specified will use `pip-fw-{vnetname}`.
       - `zones` - (Optional) A list of availability zones to use for the public IP configuration. If not specified will be `null`.
       - `ip_version` - (Optional) The IP version to use for the public IP configuration. Possible values include `IPv4`, `IPv6`. If not specified will be `IPv4`.
       - `sku_tier` - (Optional) The SKU tier to use for the public IP configuration. Possible values include `Regional`, `Global`. If not specified will be `Regional`.
   - `management_ip_configuration` - (Optional) An object with the following fields. If not specified the defaults below will be used:
     - `name` - (Optional) The name of the management IP configuration. If not specified will use `defaultMgmt`.
     - `public_ip_config` - (Optional) An object with the following fields:
-      - `name` - (Optional) The name of the public IP configuration. If not specified will use `pip-afw-mgmt-<Map Key>`.
+      - `name` - (Optional) The name of the public IP configuration. If not specified will use `pip-fw-mgmt-<Map Key>`.
       - `zones` - (Optional) A list of availability zones to use for the public IP configuration. If not specified will be `null`.
       - `ip_version` - (Optional) The IP version to use for the public IP configuration. Possible values include `IPv4`, `IPv6`. If not specified will be `IPv4`.
       - `sku_tier` - (Optional) The SKU tier to use for the public IP configuration. Possible values include `Regional`, `Global`. If not specified will be `Regional`.
