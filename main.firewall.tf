@@ -9,11 +9,16 @@ module "hub_firewalls" {
   name                = each.value.name
   resource_group_name = each.value.resource_group_name
   enable_telemetry    = var.enable_telemetry
-  firewall_ip_configuration = [{
+  firewall_ip_configuration = concat([{
     name                 = each.value.default_ip_configuration.name
-    public_ip_address_id = module.fw_default_ips[each.key].public_ip_id
+    public_ip_address_id = module.fw_default_ips["${each.key}-1"].public_ip_id
     subnet_id            = module.hub_virtual_network_subnets["${each.key}-${local.firewall_subnet_name}"].resource_id
-  }]
+    }], [
+    for i in range(1, each.value.public_ip_count) : {
+      name                 = join("-", [each.value.default_ip_configuration.name, i + 1])
+      public_ip_address_id = module.fw_default_ips["${each.key}-${i}"].public_ip_id
+    }
+  ])
   firewall_management_ip_configuration = each.value.management_ip_enabled ? {
     name                 = try(each.value.management_ip_configuration.name, null)
     public_ip_address_id = try(module.fw_management_ips[each.key].public_ip_id, null)

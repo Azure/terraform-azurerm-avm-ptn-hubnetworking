@@ -15,7 +15,7 @@ output "firewalls" {
       id                           = fw.resource_id
       name                         = fw.resource.name
       private_ip_address           = try(fw.resource.ip_configuration[0].private_ip_address, null)
-      public_ip_address            = try(module.fw_default_ips[vnet_name].public_ip_address)
+      public_ip_addresses          = try([for _, pip in module.fw_default_ips : pip.public_ip_address], [])
       management_public_ip_address = try(module.fw_management_ips[vnet_name].public_ip_address, null)
     }
   }
