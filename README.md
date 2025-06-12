@@ -174,6 +174,7 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
   - `management_subnet_default_outbound_access_enabled` - (Optional) Should the default outbound access be enabled for the Azure Firewall management subnet? Default `false`.
   - `name` - (Optional) The name of the firewall resource. If not specified will use `afw-{vnetname}`.
   - `private_ip_ranges` - (Optional) A list of private IP ranges to use for the Azure Firewall, to which the firewall will not NAT traffic. If not specified will use RFC1918.
+  - `public_ip_count` - (Optional) The number of public IPs to create for the Azure Firewall. Default `1`.
   - `subnet_route_table_id` = (Optional) The resource id of the Route Table which should be associated with the Azure Firewall subnet. If not specified the module will assign the generated route table.
   - `tags` - (Optional) A map of tags to apply to the Azure Firewall. If not specified
   - `zones` - (Optional) A list of availability zones to use for the Azure Firewall. If not specified will be `null`.
@@ -181,6 +182,7 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
     - `name` - (Optional) The name of the default IP configuration. If not specified will use `default`.
     - `public_ip_config` - (Optional) An object with the following fields:
       - `name` - (Optional) The name of the public IP configuration. If not specified will use `pip-fw-{vnetname}`.
+      - `name_prefix` - (Optional) The name prefix of the public IP configuration name, useful if you are using multiple public IPs.
       - `zones` - (Optional) A list of availability zones to use for the public IP configuration. If not specified will be `null`.
       - `ip_version` - (Optional) The IP version to use for the public IP configuration. Possible values include `IPv4`, `IPv6`. If not specified will be `IPv4`.
       - `sku_tier` - (Optional) The SKU tier to use for the public IP configuration. Possible values include `Regional`, `Global`. If not specified will be `Regional`.
@@ -291,16 +293,18 @@ map(object({
       management_subnet_default_outbound_access_enabled = optional(bool, false)
       name                                              = optional(string)
       private_ip_ranges                                 = optional(list(string))
+      public_ip_count                                   = optional(number, 1)
       subnet_route_table_id                             = optional(string)
       tags                                              = optional(map(string))
       zones                                             = optional(list(string))
       default_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({
-          ip_version = optional(string, "IPv4")
-          name       = optional(string)
-          sku_tier   = optional(string, "Regional")
-          zones      = optional(set(string))
+          ip_version  = optional(string, "IPv4")
+          name        = optional(string)
+          name_prefix = optional(string)
+          sku_tier    = optional(string, "Regional")
+          zones       = optional(set(string))
         }))
       }))
       management_ip_configuration = optional(object({
