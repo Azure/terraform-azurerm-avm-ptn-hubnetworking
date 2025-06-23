@@ -45,9 +45,18 @@ module "hub" {
         sku_tier                         = "Standard"
         subnet_address_prefix            = "10.0.1.0/24"
         management_subnet_address_prefix = "10.0.2.0/24"
-        default_ip_configuration = {
-          public_ip_config = {
-            zones = ["1", "2", "3"]
+        default_ip_configurations = {
+          primary = {
+            public_ip_config = {
+              name  = "pip-hub-primary-1"
+              zones = ["1", "2", "3"]
+            }
+          }
+          secondary = {
+            public_ip_config = {
+              name  = "pip-hub-secondary-2"
+              zones = ["1", "2", "3"]
+            }
           }
         }
         management_ip_configuration = {

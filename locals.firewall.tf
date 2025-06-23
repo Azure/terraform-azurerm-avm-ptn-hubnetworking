@@ -14,11 +14,7 @@ locals {
       firewall_policy_id    = try(local.firewall_policy_id[vnet_name], vnet.firewall.firewall_policy_id, null)
       resource_group_name   = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
       private_ip_ranges     = vnet.firewall.private_ip_ranges
-      public_ip_count       = vnet.firewall.public_ip_count
       tags                  = vnet.firewall.tags
-      default_ip_configuration = {
-        name = try(coalesce(vnet.firewall.default_ip_configuration.name, "default"), "default")
-      }
       management_ip_enabled = try(vnet.firewall.management_ip_enabled, true)
       management_ip_configuration = {
         name = try(coalesce(vnet.firewall.management_ip_configuration.name, "defaultMgmt"), "defaultMgmt")
@@ -26,31 +22,24 @@ locals {
       zones = vnet.firewall.zones
     } if vnet.firewall != null
   }
-  fw_default_ip_configuration_pip = {
-    for pair in flatten([
-      for vnet_name, vnet in var.hub_virtual_networks : [
-        for i in range(vnet.firewall.public_ip_count) : {
-          key       = "${vnet_name}${i == 0 ? "" : "-${i}"}"
-          vnet      = vnet
-          index     = i
-          vnet_name = vnet_name
-          pip_name  = coalesce(vnet.firewall.default_ip_configuration.public_ip_config.name, "${coalesce(vnet.firewall.default_ip_configuration.public_ip_config.name_prefix, "pip-fw-${vnet_name}")}${i == 0 ? "" : "-${i + 1}"}", "pip-fw-${vnet_name}")
-        }
-      ] if vnet.firewall != null
-      ]) : pair.key => {
-      location            = pair.vnet.location
-      name                = pair.pip_name
-      resource_group_name = try(pair.vnet.resource_group_name, azurerm_resource_group.rg[pair.vnet_name].name)
-      ip_version          = try(pair.vnet.firewall.default_ip_configuration.public_ip_config.ip_version, "IPv4")
-      sku_tier            = try(pair.vnet.firewall.default_ip_configuration.public_ip_config.sku_tier, "Regional")
-      tags                = pair.vnet.firewall.tags
-      zones               = try(pair.vnet.firewall.default_ip_configuration.public_ip_config.zones, null)
+  fw_default_ip_configuration_pip = merge([
+    for vnet_name, vnet in var.hub_virtual_networks : {
+      for ipconfig_key, ipconfig in try(vnet.firewall.default_ip_configurations, {}) :
+      join("-", [vnet_name, ipconfig_key]) => {
+        location            = vnet.location
+        name                = coalesce(ipconfig.public_ip_config.name, join("-", ["pip-fw", vnet_name, ipconfig_key]))
+        resource_group_name = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
+        ip_version          = try(ipconfig.public_ip_config.ip_version, "IPv4")
+        sku_tier            = try(ipconfig.public_ip_config.sku_tier, "Regional")
+        tags                = vnet.firewall.tags
+        zones               = try(ipconfig.public_ip_config.zones, null)
+      }
     }
-  }
+  ]...)
   fw_management_ip_configuration_pip = {
     for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
       location            = vnet.location
-      name                = try(coalesce(vnet.firewall.management_ip_configuration.public_ip_config.name, "pip-fw-mgmt-${vnet_name}"), "pip-fw-mgmt-${vnet_name}")
+      name                = coalesce(try(vnet.firewall.management_ip_configuration.public_ip_config.name, null), "pip-fw-mgmt-${vnet_name}")
       resource_group_name = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
       ip_version          = try(vnet.firewall.management_ip_configuration.public_ip_config.ip_version, "IPv4")
       sku_tier            = try(vnet.firewall.management_ip_configuration.public_ip_config.sku_tier, "Regional")
