@@ -108,8 +108,10 @@ module "hub_mesh" {
         management_subnet_address_prefix = "10.1.2.0/24"
         firewall_policy_id               = module.fw_policy.resource_id
         ip_configurations = {
-          public_ip_config = {
-            zones = ["1", "2", "3"]
+          secondary = {
+            public_ip_config = {
+              zones = ["1", "2", "3"]
+            }
           }
         }
         management_ip_configuration = {
