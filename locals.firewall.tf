@@ -12,13 +12,15 @@ locals {
       subnet_id            = ip_config_key == keys(vnet_value)[0] ? module.hub_virtual_network_subnets[join("-", [vnet_key, local.firewall_subnet_name])].resource_id : null
     } if ip_config_value != null]
   }
-  firewall_merged_ip_configurations = { for vnet_key, vnet_value in var.hub_virtual_networks : vnet_key => merge(
-    try({
+  firewall_merged_ip_configurations = { for vnet_key, vnet_value in var.hub_virtual_networks : vnet_key =>
+    length(vnet_value.firewall.ip_configurations) > 0 ?
+    vnet_value.firewall.ip_configurations :
+    {
       default = vnet_value.firewall.default_ip_configuration
-    }, {}),
-    try(vnet_value.firewall.ip_configurations, {}),
-  ) if vnet_value.firewall != null }
+    }
+  if vnet_value.firewall != null }
 }
+
 
 locals {
   firewalls = {

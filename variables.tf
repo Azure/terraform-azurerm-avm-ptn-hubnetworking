@@ -113,7 +113,7 @@ variable "hub_virtual_networks" {
           sku_tier   = optional(string, "Regional")
           zones      = optional(set(string))
         }))
-      })))
+      })), {})
       management_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({
@@ -271,7 +271,7 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
   - `subnet_route_table_id` = (Optional) The resource id of the Route Table which should be associated with the Azure Firewall subnet. If not specified the module will assign the generated route table.
   - `tags` - (Optional) A map of tags to apply to the Azure Firewall. If not specified
   - `zones` - (Optional) A list of availability zones to use for the Azure Firewall. If not specified will be `null`.
-  - `default_ip_configuration` - (Optional) An object with the following fields. This is for legacy purpose, consider using `ip_configurations` instead. If not specified the defaults below will be used:
+  - `default_ip_configuration` - (Optional) An object with the following fields. This is for legacy purpose, consider using `ip_configurations` instead. If `ip_configurations` is specified, this input will be ignored. If not specified the defaults below will be used:
     - `name` - (Optional) The name of the default IP configuration. If not specified will use `default`.
     - `public_ip_config` - (Optional) An object with the following fields:
       - `name` - (Optional) The name of the public IP configuration. If not specified will use `pip-fw-{vnetname}`.

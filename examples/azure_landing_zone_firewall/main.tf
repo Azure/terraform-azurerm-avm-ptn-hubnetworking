@@ -70,7 +70,6 @@ module "hub_mesh" {
         sku_tier                         = "Standard"
         zones                            = ["1", "2", "3"]
         default_ip_configuration = {
-          #name = "primary-pip"
           public_ip_config = {
             name  = "pip-fw-hub-primary"
             zones = ["1", "2", "3"]
@@ -141,6 +140,12 @@ module "hub_mesh" {
           default = {
             public_ip_config = {
               name  = "pip-fw-hub-secondary"
+              zones = ["1", "2", "3"]
+            }
+          }
+          secondary = {
+            public_ip_config = {
+              name  = "pip-fw-hub-secondary-secondary"
               zones = ["1", "2", "3"]
             }
           }

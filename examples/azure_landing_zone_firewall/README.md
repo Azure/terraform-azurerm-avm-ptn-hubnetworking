@@ -76,7 +76,6 @@ module "hub_mesh" {
         sku_tier                         = "Standard"
         zones                            = ["1", "2", "3"]
         default_ip_configuration = {
-          #name = "primary-pip"
           public_ip_config = {
             name  = "pip-fw-hub-primary"
             zones = ["1", "2", "3"]
@@ -147,6 +146,12 @@ module "hub_mesh" {
           default = {
             public_ip_config = {
               name  = "pip-fw-hub-secondary"
+              zones = ["1", "2", "3"]
+            }
+          }
+          secondary = {
+            public_ip_config = {
+              name  = "pip-fw-hub-secondary-secondary"
               zones = ["1", "2", "3"]
             }
           }
@@ -425,6 +430,10 @@ Description: n/a
 Description: n/a
 
 ### <a name="output_route_tables_user_subnets"></a> [route\_tables\_user\_subnets](#output\_route\_tables\_user\_subnets)
+
+Description: n/a
+
+### <a name="output_test"></a> [test](#output\_test)
 
 Description: n/a
 
