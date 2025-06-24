@@ -136,10 +136,18 @@ module "hub_mesh" {
         sku_name                         = "AZFW_VNet"
         sku_tier                         = "Standard"
         zones                            = ["1", "2", "3"]
-        default_ip_configuration = {
-          public_ip_config = {
-            name  = "pip-fw-hub-secondary"
-            zones = ["1", "2", "3"]
+        ip_configurations = {
+          default = {
+            public_ip_config = {
+              name  = "pip-fw-hub-secondary"
+              zones = ["1", "2", "3"]
+            }
+          }
+          secondary = {
+            public_ip_config = {
+              name  = "pip-fw-hub-secondary-secondary"
+              zones = ["1", "2", "3"]
+            }
           }
         }
         management_ip_enabled = false

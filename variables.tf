@@ -96,8 +96,10 @@ variable "hub_virtual_networks" {
       subnet_route_table_id                             = optional(string)
       tags                                              = optional(map(string))
       zones                                             = optional(list(string))
+
       default_ip_configuration = optional(object({
-        name = optional(string)
+        is_default = optional(bool, true)
+        name       = optional(string)
         public_ip_config = optional(object({
           ip_version = optional(string, "IPv4")
           name       = optional(string)
@@ -105,6 +107,16 @@ variable "hub_virtual_networks" {
           zones      = optional(set(string))
         }))
       }))
+      ip_configurations = optional(map(object({
+        is_default = optional(bool, false)
+        name       = optional(string)
+        public_ip_config = optional(object({
+          ip_version = optional(string, "IPv4")
+          name       = optional(string)
+          sku_tier   = optional(string, "Regional")
+          zones      = optional(set(string))
+        }))
+      })), {})
       management_ip_configuration = optional(object({
         name = optional(string)
         public_ip_config = optional(object({
@@ -262,10 +274,19 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
   - `subnet_route_table_id` = (Optional) The resource id of the Route Table which should be associated with the Azure Firewall subnet. If not specified the module will assign the generated route table.
   - `tags` - (Optional) A map of tags to apply to the Azure Firewall. If not specified
   - `zones` - (Optional) A list of availability zones to use for the Azure Firewall. If not specified will be `null`.
-  - `default_ip_configuration` - (Optional) An object with the following fields. If not specified the defaults below will be used:
+  - `default_ip_configuration` - (Optional) An object with the following fields. This is for legacy purpose, consider using `ip_configurations` instead. If `ip_configurations` is specified, this input will be ignored. If not specified the defaults below will be used:
     - `name` - (Optional) The name of the default IP configuration. If not specified will use `default`.
+    - `is_default` - (Optional) Indicates this is the default IP configuration. This must always be `true` for the legacy configuration. If not specified will be `true`.
     - `public_ip_config` - (Optional) An object with the following fields:
       - `name` - (Optional) The name of the public IP configuration. If not specified will use `pip-fw-{vnetname}`.
+      - `zones` - (Optional) A list of availability zones to use for the public IP configuration. If not specified will be `null`.
+      - `ip_version` - (Optional) The IP version to use for the public IP configuration. Possible values include `IPv4`, `IPv6`. If not specified will be `IPv4`.
+      - `sku_tier` - (Optional) The SKU tier to use for the public IP configuration. Possible values include `Regional`, `Global`. If not specified will be `Regional`.
+  - `ip_configurations` - (Optional) A map of the default IP configuration for the Azure Firewall. If not specified the defaults below will be used:
+    - `name` - (Optional) The name of the default IP configuration. If not specified will use `default`.
+    - `is_default` - (Optional) Indicates this is the default IP configuration, which will be linked to the Firewall subnet. If not specified will be `false`. At least one and only one IP configuration must have this set to `true`.
+    - `public_ip_config` - (Optional) An object with the following fields:
+      - `name` - (Optional) The name of the public IP configuration. If not specified will use `pip-fw-{vnetname}-<Map Key>`.
       - `zones` - (Optional) A list of availability zones to use for the public IP configuration. If not specified will be `null`.
       - `ip_version` - (Optional) The IP version to use for the public IP configuration. Possible values include `IPv4`, `IPv6`. If not specified will be `IPv4`.
       - `sku_tier` - (Optional) The SKU tier to use for the public IP configuration. Possible values include `Regional`, `Global`. If not specified will be `Regional`.

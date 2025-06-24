@@ -15,7 +15,7 @@ output "firewalls" {
       id                           = fw.resource_id
       name                         = fw.resource.name
       private_ip_address           = try(fw.resource.ip_configuration[0].private_ip_address, null)
-      public_ip_address            = try(module.fw_default_ips[vnet_name].public_ip_address)
+      public_ip_addresses          = try([for k, pip in module.fw_default_ips : pip.public_ip_address if startswith(k, "${vnet_name}-") || k == vnet_name], [])
       management_public_ip_address = try(module.fw_management_ips[vnet_name].public_ip_address, null)
     }
   }
@@ -60,6 +60,13 @@ output "resource_groups" {
 output "resource_id" {
   description = "The resource IDs of the hub virtual networks."
   value       = { for key, value in module.hub_virtual_networks : key => value.resource_id }
+}
+
+output "test" {
+  value = {
+    firewall_merged_ip_configurations = local.firewall_merged_ip_configurations
+    firewall_ip_configurations        = local.firewall_ip_configurations
+  }
 }
 
 output "virtual_networks" {
