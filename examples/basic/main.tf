@@ -47,14 +47,14 @@ module "hub" {
         management_subnet_address_prefix = "10.0.2.0/24"
         ip_configurations = {
           primary = {
-            name  = "primary-ip-config"
+            name = "primary-ip-config"
             public_ip_config = {
               name  = "pip-hub-primary-1"
               zones = ["1", "2", "3"]
             }
           }
           secondary = {
-            name  = "secondary-ip-config"
+            name = "secondary-ip-config"
             public_ip_config = {
               name  = "pip-hub-secondary-2"
               zones = ["1", "2", "3"]

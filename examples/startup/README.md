@@ -71,7 +71,7 @@ module "hub_mesh" {
         subnet_address_prefix            = "10.0.1.0/24"
         management_subnet_address_prefix = "10.0.2.0/24"
         firewall_policy_id               = module.fw_policy.resource_id
-        default_ip_configurations = {
+        ip_configurations = {
           primary = {
             public_ip_config = {
               zones = ["1", "2", "3"]
@@ -107,7 +107,7 @@ module "hub_mesh" {
         subnet_address_prefix            = "10.1.1.0/24"
         management_subnet_address_prefix = "10.1.2.0/24"
         firewall_policy_id               = module.fw_policy.resource_id
-        default_ip_configurations = {
+        ip_configurations = {
           public_ip_config = {
             zones = ["1", "2", "3"]
           }
