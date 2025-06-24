@@ -293,7 +293,17 @@ map(object({
       subnet_route_table_id                             = optional(string)
       tags                                              = optional(map(string))
       zones                                             = optional(list(string))
-      default_ip_configurations = optional(map(object({
+      default_ip_configuration = optional(object({
+        name = optional(string)
+        public_ip_config = optional(object({
+          ip_version = optional(string, "IPv4")
+          name       = optional(string)
+          sku_tier   = optional(string, "Regional")
+          zones      = optional(set(string))
+        }))
+      }))
+      ip_configurations = optional(map(object({
+        name = optional(string)
         public_ip_config = optional(object({
           ip_version = optional(string, "IPv4")
           name       = optional(string)
