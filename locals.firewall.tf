@@ -43,7 +43,7 @@ locals {
       for ip_config_key, ip_config_value in vnet_value : {
         composite_key       = ip_config_key == keys(vnet_value)[0] ? vnet_key : "${vnet_key}-${ip_config_key}"
         location            = var.hub_virtual_networks[vnet_key].location
-        name                = try(ip_config_value.public_ip_config.name, ip_config_key == keys(vnet_value)[0] ? "pip-fw-${vnet_key}" : join("-", ["pip-fw", vnet_key, ip_config_key]))
+        name                = coalesce(try(ip_config_value.public_ip_config.name, null), ip_config_key == keys(vnet_value)[0] ? "pip-fw-${vnet_key}" : "pip-fw-${vnet_key}-${ip_config_key}")
         resource_group_name = try(var.hub_virtual_networks[vnet_key].resource_group_name, azurerm_resource_group.rg[vnet_key].name)
         ip_version          = try(ip_config_value.public_ip_config.ip_version, "IPv4")
         sku_tier            = try(ip_config_value.public_ip_config.sku_tier, "Regional")
