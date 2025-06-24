@@ -3,17 +3,13 @@ module "hub_firewalls" {
   version  = "0.3.0"
   for_each = local.firewalls
 
-  firewall_sku_name   = each.value.sku_name
-  firewall_sku_tier   = each.value.sku_tier
-  location            = var.hub_virtual_networks[each.key].location
-  name                = each.value.name
-  resource_group_name = each.value.resource_group_name
-  enable_telemetry    = var.enable_telemetry
-  firewall_ip_configuration = [{
-    name                 = each.value.default_ip_configuration.name
-    public_ip_address_id = module.fw_default_ips[each.key].public_ip_id
-    subnet_id            = module.hub_virtual_network_subnets["${each.key}-${local.firewall_subnet_name}"].resource_id
-  }]
+  firewall_sku_name         = each.value.sku_name
+  firewall_sku_tier         = each.value.sku_tier
+  location                  = var.hub_virtual_networks[each.key].location
+  name                      = each.value.name
+  resource_group_name       = each.value.resource_group_name
+  enable_telemetry          = var.enable_telemetry
+  firewall_ip_configuration = local.firewall_ip_configurations[each.key]
   firewall_management_ip_configuration = each.value.management_ip_enabled ? {
     name                 = try(each.value.management_ip_configuration.name, null)
     public_ip_address_id = try(module.fw_management_ips[each.key].public_ip_id, null)

@@ -2,8 +2,8 @@ output "firewall_id" {
   value = module.hub.firewalls["hub"].id
 }
 
-output "firewall_ip_address" {
-  value = module.hub.firewalls["hub"].public_ip_address
+output "firewall_ip_addresses" {
+  value = module.hub.firewalls["hub"].public_ip_addresses
 }
 
 output "resource_group_id" {
