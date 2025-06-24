@@ -18,10 +18,6 @@ output "route_tables_user_subnets" {
   value = module.hub_mesh.hub_route_tables_user_subnets
 }
 
-output "test" {
-  value = module.hub_mesh.test
-}
-
 output "virtual_networks" {
   value = module.hub_mesh.virtual_networks
 }

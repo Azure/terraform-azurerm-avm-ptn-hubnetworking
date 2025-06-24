@@ -6,17 +6,29 @@ locals {
 
 locals {
   firewall_ip_configurations = { for vnet_key, vnet_value in local.firewall_merged_ip_configurations : vnet_key =>
-    [for ip_config_key, ip_config_value in vnet_value : {
+    { for ip_config_key, ip_config_value in vnet_value : ip_config_key => {
       name                 = try(ip_config_value.name == null ? ip_config_key : ip_config_value.name, ip_config_key)
-      public_ip_address_id = module.fw_default_ips[ip_config_key == keys(vnet_value)[0] ? vnet_key : "${vnet_key}-${ip_config_key}"].public_ip_id
-      subnet_id            = ip_config_key == keys(vnet_value)[0] ? module.hub_virtual_network_subnets[join("-", [vnet_key, local.firewall_subnet_name])].resource_id : null
-    } if ip_config_value != null]
+      public_ip_address_id = module.fw_default_ips[ip_config_value.public_ip_key].public_ip_id
+      subnet_id            = ip_config_value.is_default ? module.hub_virtual_network_subnets[ip_config_value.subnet_key].resource_id : null
+    } }
   }
   firewall_merged_ip_configurations = { for vnet_key, vnet_value in var.hub_virtual_networks : vnet_key =>
     length(vnet_value.firewall.ip_configurations) > 0 ?
-    vnet_value.firewall.ip_configurations :
+    { for ip_config_key, ip_config_value in vnet_value.firewall.ip_configurations : ip_config_key => {
+      public_ip_key    = ip_config_key == "default" ? vnet_key : "${vnet_key}-${ip_config_key}"
+      subnet_key       = "${vnet_key}-${local.firewall_subnet_name}"
+      is_default       = ip_config_value.is_default || (alltrue([for ip_config in values(vnet_value.firewall.ip_configurations) : !ip_config.is_default]) && (length(vnet_value.firewall.ip_configurations) == 1 || ip_config_key == "default"))
+      name             = ip_config_value.name == null ? ip_config_key : ip_config_value.name
+      public_ip_config = ip_config_value.public_ip_config
+    } } :
     {
-      default = vnet_value.firewall.default_ip_configuration
+      default = {
+        public_ip_key    = vnet_key
+        subnet_key       = "${vnet_key}-${local.firewall_subnet_name}"
+        is_default       = true
+        name             = vnet_value.firewall.default_ip_configuration.name == null ? "default" : vnet_value.firewall.default_ip_configuration.name
+        public_ip_config = vnet_value.firewall.default_ip_configuration.public_ip_config
+      }
     }
   if vnet_value.firewall != null }
 }
@@ -37,15 +49,16 @@ locals {
       management_ip_configuration = {
         name = try(coalesce(vnet.firewall.management_ip_configuration.name, "defaultMgmt"), "defaultMgmt")
       }
-      zones = vnet.firewall.zones
+      zones                                      = vnet.firewall.zones
+      legacy_list_based_ip_configuration_enabled = try(vnet.firewall.legacy_list_based_ip_configuration_enabled, false)
     } if vnet.firewall != null
   }
   fw_default_ip_configuration_pip = { for public_ip in flatten([
     for vnet_key, vnet_value in local.firewall_merged_ip_configurations : [
       for ip_config_key, ip_config_value in vnet_value : {
-        composite_key       = ip_config_key == keys(vnet_value)[0] ? vnet_key : "${vnet_key}-${ip_config_key}"
+        composite_key       = ip_config_value.public_ip_key
         location            = var.hub_virtual_networks[vnet_key].location
-        name                = coalesce(try(ip_config_value.public_ip_config.name, null), ip_config_key == keys(vnet_value)[0] ? "pip-fw-${vnet_key}" : "pip-fw-${vnet_key}-${ip_config_key}")
+        name                = coalesce(try(ip_config_value.public_ip_config.name, null), "pip-fw-${ip_config_value.public_ip_key}")
         resource_group_name = try(var.hub_virtual_networks[vnet_key].resource_group_name, azurerm_resource_group.rg[vnet_key].name)
         ip_version          = try(ip_config_value.public_ip_config.ip_version, "IPv4")
         sku_tier            = try(ip_config_value.public_ip_config.sku_tier, "Regional")

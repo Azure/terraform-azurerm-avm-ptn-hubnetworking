@@ -433,10 +433,6 @@ Description: n/a
 
 Description: n/a
 
-### <a name="output_test"></a> [test](#output\_test)
-
-Description: n/a
-
 ### <a name="output_virtual_networks"></a> [virtual\_networks](#output\_virtual\_networks)
 
 Description: n/a

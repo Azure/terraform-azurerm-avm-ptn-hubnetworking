@@ -1,15 +1,14 @@
 module "hub_firewalls" {
   source   = "Azure/avm-res-network-azurefirewall/azurerm"
-  version  = "0.3.0"
+  version  = "0.4.0"
   for_each = local.firewalls
 
-  firewall_sku_name         = each.value.sku_name
-  firewall_sku_tier         = each.value.sku_tier
-  location                  = var.hub_virtual_networks[each.key].location
-  name                      = each.value.name
-  resource_group_name       = each.value.resource_group_name
-  enable_telemetry          = var.enable_telemetry
-  firewall_ip_configuration = local.firewall_ip_configurations[each.key]
+  firewall_sku_name   = each.value.sku_name
+  firewall_sku_tier   = each.value.sku_tier
+  location            = var.hub_virtual_networks[each.key].location
+  name                = each.value.name
+  resource_group_name = each.value.resource_group_name
+  enable_telemetry    = var.enable_telemetry
   firewall_management_ip_configuration = each.value.management_ip_enabled ? {
     name                 = try(each.value.management_ip_configuration.name, null)
     public_ip_address_id = try(module.fw_management_ips[each.key].public_ip_id, null)
@@ -18,6 +17,7 @@ module "hub_firewalls" {
   firewall_policy_id         = each.value.firewall_policy_id
   firewall_private_ip_ranges = each.value.private_ip_ranges
   firewall_zones             = each.value.zones
+  ip_configurations          = local.firewall_ip_configurations[each.key]
   tags                       = each.value.tags == null ? var.tags : each.value.tags
 }
 
