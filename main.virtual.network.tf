@@ -1,6 +1,6 @@
 module "hub_virtual_networks" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version  = "0.7.1"
+  version  = "0.9.0"
   for_each = var.hub_virtual_networks
 
   address_space       = each.value.address_space
@@ -21,7 +21,7 @@ module "hub_virtual_networks" {
 
 module "hub_virtual_network_subnets" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/subnet"
-  version  = "0.7.1"
+  version  = "0.9.0"
   for_each = local.subnets
 
   address_prefixes                              = each.value.address_prefixes
@@ -42,7 +42,7 @@ module "hub_virtual_network_subnets" {
 
 module "hub_virtual_network_peering" {
   source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/peering"
-  version  = "0.7.1"
+  version  = "0.9.0"
   for_each = local.peerings
 
   allow_forwarded_traffic      = each.value.allow_forwarded_traffic
