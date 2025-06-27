@@ -132,7 +132,7 @@ resource "azurerm_resource_group" "spoke1" {
 
 module "spoke1_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.7.1"
+  version = "0.9.1"
 
   address_space       = ["10.0.4.0/24"]
   location            = azurerm_resource_group.spoke1.location
@@ -211,7 +211,7 @@ resource "azurerm_resource_group" "spoke2" {
 
 module "spoke2_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.7.1"
+  version = "0.9.1"
 
   address_space       = ["10.1.4.0/24"]
   location            = azurerm_resource_group.spoke2.location
