@@ -51,6 +51,7 @@ locals {
       }
       zones                                      = vnet.firewall.zones
       legacy_list_based_ip_configuration_enabled = try(vnet.firewall.legacy_list_based_ip_configuration_enabled, false)
+      diagnostic_settings                        = try(vnet.firewall.diagnostic_settings, null)
     } if vnet.firewall != null
   }
   fw_default_ip_configuration_pip = { for public_ip in flatten([

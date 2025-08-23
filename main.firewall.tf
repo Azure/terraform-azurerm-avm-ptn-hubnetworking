@@ -18,6 +18,7 @@ module "hub_firewalls" {
   firewall_private_ip_ranges = each.value.private_ip_ranges
   firewall_zones             = each.value.zones
   ip_configurations          = local.firewall_ip_configurations[each.key]
+  diagnostic_settings        = each.value.diagnostic_settings
   tags                       = each.value.tags == null ? var.tags : each.value.tags
 }
 
