@@ -8,6 +8,7 @@ module "hub_firewalls" {
   location            = var.hub_virtual_networks[each.key].location
   name                = each.value.name
   resource_group_name = each.value.resource_group_name
+  diagnostic_settings = each.value.diagnostic_settings
   enable_telemetry    = var.enable_telemetry
   firewall_management_ip_configuration = each.value.management_ip_enabled ? {
     name                 = try(each.value.management_ip_configuration.name, null)
@@ -18,7 +19,6 @@ module "hub_firewalls" {
   firewall_private_ip_ranges = each.value.private_ip_ranges
   firewall_zones             = each.value.zones
   ip_configurations          = local.firewall_ip_configurations[each.key]
-  diagnostic_settings        = each.value.diagnostic_settings
   tags                       = each.value.tags == null ? var.tags : each.value.tags
 }
 

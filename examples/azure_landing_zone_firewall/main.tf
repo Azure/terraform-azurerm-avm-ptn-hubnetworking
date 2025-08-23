@@ -89,6 +89,13 @@ module "hub_mesh" {
             proxy_enabled = true
           }
         }
+        diagnostic_settings = {
+          name                           = "diag-fw-hub-primary"
+          log_categories                 = ["allLogs"]
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
+          log_analytics_destination_type = "Dedicated"
+        }
       }
       subnets = {
         bastion = {
@@ -162,6 +169,13 @@ module "hub_mesh" {
           dns = {
             proxy_enabled = true
           }
+        }
+        diagnostic_settings = {
+          name                           = "diag-fw-hub-secondary"
+          log_categories                 = ["allLogs"]
+          log_groups                     = ["allLogs"]
+          metric_categories              = ["AllMetrics"]
+          log_analytics_destination_type = "Dedicated"
         }
       }
       subnets = {
