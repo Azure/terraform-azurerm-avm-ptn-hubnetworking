@@ -49,6 +49,6 @@ module "hub_virtual_network_peering" {
   allow_virtual_network_access = each.value.allow_virtual_network_access
   create_reverse_peering       = false
   name                         = each.value.name
-  remote_virtual_network       = each.value.remote_virtual_network
+  remote_virtual_network_id    = each.value.remote_virtual_network_id
   use_remote_gateways          = each.value.use_remote_gateways
 }
