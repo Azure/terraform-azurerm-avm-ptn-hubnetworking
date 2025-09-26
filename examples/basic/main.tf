@@ -35,11 +35,10 @@ module "hub" {
 
   hub_virtual_networks = {
     hub = {
-      name                            = "hub-${var.suffix}"
-      address_space                   = ["10.0.0.0/16"]
-      location                        = var.location
-      resource_group_name             = azurerm_resource_group.rg.name
-      resource_group_creation_enabled = false
+      name          = "hub-${var.suffix}"
+      address_space = ["10.0.0.0/16"]
+      location      = var.location
+      parent_id     = azurerm_resource_group.rg.id
       firewall = {
         sku_name                         = "AZFW_VNet"
         sku_tier                         = "Standard"

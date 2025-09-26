@@ -22,7 +22,7 @@ locals {
       address_prefix         = "0.0.0.0/0"
       next_hop_type          = "Internet"
       next_hop_in_ip_address = null
-      resource_group_name    = try(value.resource_group_name, azurerm_resource_group.rg[key].name)
+      resource_group_name    = local.resource_group_names[key]
     } if local.create_route_tables_firewall[key]
   }
   firewall_private_ip = {
@@ -39,7 +39,7 @@ locals {
             address_prefix         = cidr
             next_hop_type          = "VirtualAppliance"
             next_hop_in_ip_address = try(local.firewall_private_ip[k_dst], v_dst.hub_router_ip_address)
-            resource_group_name    = try(v_src.resource_group_name, azurerm_resource_group.rg[k_src].name)
+            resource_group_name    = local.resource_group_names[k_src]
           } if k_src != k_dst && v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0]) && local.create_route_tables_firewall[k_dst]
         ]
       ] if v_src.mesh_peering_enabled && local.create_route_tables_firewall[k_src]
@@ -54,7 +54,7 @@ locals {
           address_prefix         = route_table_entry.address_prefix
           next_hop_type          = route_table_entry.next_hop_type
           next_hop_in_ip_address = route_table_entry.next_hop_ip_address
-          resource_group_name    = try(v_src.resource_group_name, azurerm_resource_group.rg[k_src].name)
+          resource_group_name    = local.resource_group_names[k_src]
         }
       ]
     ]) : route.name => route
@@ -71,7 +71,7 @@ locals {
       address_prefix         = "0.0.0.0/0"
       next_hop_type          = "VirtualAppliance"
       next_hop_in_ip_address = try(local.firewall_private_ip[key], value.hub_router_ip_address)
-      resource_group_name    = try(value.resource_group_name, azurerm_resource_group.rg[key].name)
+      resource_group_name    = local.resource_group_names[key]
     } if local.create_route_tables_user_subnets[key]
   }
   mesh_route_map_user_subnets = {
@@ -85,7 +85,7 @@ locals {
             address_prefix         = cidr
             next_hop_type          = "VirtualAppliance"
             next_hop_in_ip_address = try(local.firewall_private_ip[k_dst], v_dst.hub_router_ip_address)
-            resource_group_name    = try(v_src.resource_group_name, azurerm_resource_group.rg[k_src].name)
+            resource_group_name    = local.resource_group_names[k_src]
           } if v_dst.mesh_peering_enabled && can(v_dst.routing_address_space[0]) && local.create_route_tables_user_subnets[k_dst]
         ]
       ] if v_src.mesh_peering_enabled && local.create_route_tables_user_subnets[k_src]
@@ -100,7 +100,7 @@ locals {
           address_prefix         = route_table_entry.address_prefix
           next_hop_type          = route_table_entry.next_hop_type
           next_hop_in_ip_address = route_table_entry.next_hop_ip_address
-          resource_group_name    = try(v_src.resource_group_name, azurerm_resource_group.rg[k_src].name)
+          resource_group_name    = local.resource_group_names[k_src]
         }
       ]
     ]) : route.name => route
