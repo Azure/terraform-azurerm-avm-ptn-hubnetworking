@@ -418,10 +418,6 @@ Description: n/a
 
 Description: n/a
 
-### <a name="output_resource_groups"></a> [resource\_groups](#output\_resource\_groups)
-
-Description: n/a
-
 ### <a name="output_route_tables_firewall"></a> [route\_tables\_firewall](#output\_route\_tables\_firewall)
 
 Description: n/a
