@@ -425,17 +425,9 @@ Description: A curated output of the route tables created by this module.
 
 Description: The names of the hub virtual networks.
 
-### <a name="output_resource_groups"></a> [resource\_groups](#output\_resource\_groups)
-
-Description: A curated output of the resource groups created by this module.
-
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The resource IDs of the hub virtual networks.
-
-### <a name="output_test"></a> [test](#output\_test)
-
-Description: n/a
 
 ### <a name="output_virtual_networks"></a> [virtual\_networks](#output\_virtual\_networks)
 

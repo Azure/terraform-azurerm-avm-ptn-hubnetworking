@@ -59,7 +59,7 @@ locals {
         composite_key       = ip_config_value.public_ip_key
         location            = var.hub_virtual_networks[vnet_key].location
         name                = coalesce(try(ip_config_value.public_ip_config.name, null), "pip-fw-${ip_config_value.public_ip_key}")
-        resource_group_name = local.resource_group_names[vnet_name]
+        resource_group_name = local.resource_group_names[vnet_key]
         ip_version          = try(ip_config_value.public_ip_config.ip_version, "IPv4")
         sku_tier            = try(ip_config_value.public_ip_config.sku_tier, "Regional")
         tags                = var.hub_virtual_networks[vnet_key].firewall.tags

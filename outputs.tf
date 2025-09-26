@@ -46,27 +46,9 @@ output "name" {
   value       = { for key, value in module.hub_virtual_networks : key => value.name }
 }
 
-output "resource_groups" {
-  description = "A curated output of the resource groups created by this module."
-  value = {
-    for rg_name, rg in azurerm_resource_group.rg : rg_name => {
-      name     = rg.name
-      location = rg.location
-      id       = rg.id
-    }
-  }
-}
-
 output "resource_id" {
   description = "The resource IDs of the hub virtual networks."
   value       = { for key, value in module.hub_virtual_networks : key => value.resource_id }
-}
-
-output "test" {
-  value = {
-    firewall_merged_ip_configurations = local.firewall_merged_ip_configurations
-    firewall_ip_configurations        = local.firewall_ip_configurations
-  }
 }
 
 output "virtual_networks" {
