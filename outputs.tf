@@ -56,7 +56,8 @@ output "virtual_networks" {
   value = {
     for vnet_key, vnet_mod in module.hub_virtual_networks : vnet_key => {
       name                        = vnet_mod.name
-      resource_group_name         = var.hub_virtual_networks[vnet_key].resource_group_name
+      parent_id                   = var.hub_virtual_networks[vnet_key].parent_id
+      resource_group_name         = local.resource_group_names[vnet_key]
       id                          = vnet_mod.resource_id
       virtual_network_resource_id = vnet_mod.resource.id
       location                    = var.hub_virtual_networks[vnet_key].location

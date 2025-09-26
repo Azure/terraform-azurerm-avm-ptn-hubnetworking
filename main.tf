@@ -43,7 +43,7 @@ module "hub_virtual_network_peering" {
   version  = "0.11.0"
   for_each = local.peerings
 
-  parent_id                    = each.value.virtual_network
+  parent_id                    = each.value.parent_id
   allow_forwarded_traffic      = each.value.allow_forwarded_traffic
   allow_gateway_transit        = each.value.allow_gateway_transit
   allow_virtual_network_access = each.value.allow_virtual_network_access
