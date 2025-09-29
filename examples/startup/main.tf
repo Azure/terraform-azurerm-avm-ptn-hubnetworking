@@ -50,15 +50,13 @@ module "hub_mesh" {
 
   hub_virtual_networks = {
     primary-hub = {
-      name                            = "primary"
-      address_space                   = ["10.0.0.0/16"]
-      location                        = local.regions.primary
-      resource_group_name             = azurerm_resource_group.hub_rg["primary"].name
-      resource_group_creation_enabled = false
-      resource_group_lock_enabled     = false
-      mesh_peering_enabled            = true
-      route_table_name                = "rt-hub-primary"
-      routing_address_space           = ["10.0.0.0/16", "192.168.0.0/24"]
+      name                  = "primary"
+      address_space         = ["10.0.0.0/16"]
+      location              = local.regions.primary
+      parent_id             = azurerm_resource_group.hub_rg["primary"].id
+      mesh_peering_enabled  = true
+      route_table_name      = "rt-hub-primary"
+      routing_address_space = ["10.0.0.0/16", "192.168.0.0/24"]
       firewall = {
         sku_name                         = "AZFW_VNet"
         sku_tier                         = "Standard"
@@ -86,15 +84,13 @@ module "hub_mesh" {
       }
     }
     secondary-hub = {
-      name                            = "secondary-hub"
-      address_space                   = ["10.1.0.0/16"]
-      location                        = local.regions.secondary
-      resource_group_name             = azurerm_resource_group.hub_rg["secondary"].name
-      resource_group_creation_enabled = false
-      resource_group_lock_enabled     = false
-      mesh_peering_enabled            = true
-      route_table_name                = "rt-hub-secondary"
-      routing_address_space           = ["10.1.0.0/16", "192.168.1.0/24"]
+      name                  = "secondary-hub"
+      address_space         = ["10.1.0.0/16"]
+      location              = local.regions.secondary
+      parent_id             = azurerm_resource_group.hub_rg["secondary"].id
+      mesh_peering_enabled  = true
+      route_table_name      = "rt-hub-secondary"
+      routing_address_space = ["10.1.0.0/16", "192.168.1.0/24"]
       firewall = {
         sku_name                         = "AZFW_VNet"
         sku_tier                         = "Standard"
@@ -181,12 +177,12 @@ resource "azurerm_resource_group" "spoke1" {
 
 module "spoke1_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.9.2"
+  version = "0.11.0"
 
-  address_space       = ["192.168.0.0/24"]
-  location            = azurerm_resource_group.spoke1.location
-  resource_group_name = azurerm_resource_group.spoke1.name
-  name                = "vnet-spoke1-${random_pet.rand.id}"
+  address_space = ["192.168.0.0/24"]
+  location      = azurerm_resource_group.spoke1.location
+  parent_id     = azurerm_resource_group.spoke1.id
+  name          = "vnet-spoke1-${random_pet.rand.id}"
   peerings = {
     "spoke1-peering" = {
       name                                 = "spoke1-peering"
@@ -286,12 +282,12 @@ resource "azurerm_resource_group" "spoke2" {
 
 module "spoke2_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.9.2"
+  version = "0.11.0"
 
-  address_space       = ["192.168.1.0/24"]
-  location            = azurerm_resource_group.spoke2.location
-  resource_group_name = azurerm_resource_group.spoke2.name
-  name                = "vnet-spoke2-${random_pet.rand.id}"
+  address_space = ["192.168.1.0/24"]
+  location      = azurerm_resource_group.spoke2.location
+  parent_id     = azurerm_resource_group.spoke2.id
+  name          = "vnet-spoke2-${random_pet.rand.id}"
   peerings = {
     "spoke2-peering" = {
       name                                 = "spoke2-peering"

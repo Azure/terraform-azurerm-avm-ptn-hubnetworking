@@ -11,25 +11,21 @@ DESCRIPTION
 
 variable "hub_virtual_networks" {
   type = map(object({
-    name                            = string
-    address_space                   = list(string)
-    location                        = string
-    resource_group_name             = string
-    route_table_name_firewall       = optional(string)
-    route_table_name_user_subnets   = optional(string)
-    bgp_community                   = optional(string)
-    ddos_protection_plan_id         = optional(string)
-    dns_servers                     = optional(list(string))
-    flow_timeout_in_minutes         = optional(number, 4)
-    mesh_peering_enabled            = optional(bool, true)
-    peering_names                   = optional(map(string))
-    resource_group_creation_enabled = optional(bool, true)
-    resource_group_lock_enabled     = optional(bool, true)
-    resource_group_lock_name        = optional(string)
-    resource_group_tags             = optional(map(string))
-    routing_address_space           = optional(list(string), [])
-    hub_router_ip_address           = optional(string)
-    tags                            = optional(map(string))
+    name                          = string
+    address_space                 = list(string)
+    location                      = string
+    parent_id                     = string
+    route_table_name_firewall     = optional(string)
+    route_table_name_user_subnets = optional(string)
+    bgp_community                 = optional(string)
+    ddos_protection_plan_id       = optional(string)
+    dns_servers                   = optional(list(string))
+    flow_timeout_in_minutes       = optional(number, 4)
+    mesh_peering_enabled          = optional(bool, true)
+    peering_names                 = optional(map(string))
+    routing_address_space         = optional(list(string), [])
+    hub_router_ip_address         = optional(string)
+    tags                          = optional(map(string))
 
     route_table_entries_firewall = optional(set(object({
       name           = string
@@ -198,7 +194,7 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
 - `name` - The name of the Virtual Network.
 - `address_space` - A list of IPv4 address spaces that are used by this virtual network in CIDR format, e.g. `["192.168.0.0/24"]`.
 - `location` - The Azure location where the virtual network should be created.
-- `resource_group_name` - The name of the resource group in which the virtual network should be created.
+- `parent_id` - The ID of the parent resource group where the virtual network should be created.
 
 ### Optional fields
 
@@ -208,10 +204,6 @@ A map of the hub virtual networks to create. The map key is an arbitrary value t
 - `flow_timeout_in_minutes` - The flow timeout in minutes for the virtual network. Default `4`.
 - `mesh_peering_enabled` - Should the virtual network be peered to other hub networks with this flag enabled? Default `true`.
 - `peering_names` - A map of the names of the peering connections to create between this virtual network and other hub networks. The key is the key of the peered hub network, and the value is the name of the peering connection.
-- `resource_group_creation_enabled` - Should the resource group for this virtual network be created by this module? Default `true`.
-- `resource_group_lock_enabled` - Should the resource group for this virtual network be locked? Default `true`.
-- `resource_group_lock_name` - The name of the resource group lock.
-- `resource_group_tags` - A map of tags to apply to the resource group.
 - `route_table_name_firewall` - The name of the route table to create for the firewall routes. Default `route-{vnetname}`.
 - `route_table_name_user_subnets` - The name of the route table to create for the user subnet routes. Default `route-{vnetname}`.
 - `routing_address_space` - A list of IPv4 address spaces in CIDR format that are used for routing to this hub, e.g. `["192.168.0.0","172.16.0.0/12"]`.

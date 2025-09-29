@@ -6,10 +6,6 @@ output "firewalls" {
   value = module.hub_mesh.firewalls
 }
 
-output "resource_groups" {
-  value = module.hub_mesh.resource_groups
-}
-
 output "route_tables_firewall" {
   value = module.hub_mesh.hub_route_tables_firewall
 }

@@ -66,8 +66,6 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_management_lock.rg_lock](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_resource_group.rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_route.firewall_default](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
 - [azurerm_route.firewall_mesh](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
 - [azurerm_route.user_subnets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) (resource)
@@ -104,7 +102,7 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
 - `name` - The name of the Virtual Network.
 - `address_space` - A list of IPv4 address spaces that are used by this virtual network in CIDR format, e.g. `["192.168.0.0/24"]`.
 - `location` - The Azure location where the virtual network should be created.
-- `resource_group_name` - The name of the resource group in which the virtual network should be created.
+- `parent_id` - The ID of the parent resource group where the virtual network should be created.
 
 ### Optional fields
 
@@ -114,10 +112,6 @@ Description: A map of the hub virtual networks to create. The map key is an arbi
 - `flow_timeout_in_minutes` - The flow timeout in minutes for the virtual network. Default `4`.
 - `mesh_peering_enabled` - Should the virtual network be peered to other hub networks with this flag enabled? Default `true`.
 - `peering_names` - A map of the names of the peering connections to create between this virtual network and other hub networks. The key is the key of the peered hub network, and the value is the name of the peering connection.
-- `resource_group_creation_enabled` - Should the resource group for this virtual network be created by this module? Default `true`.
-- `resource_group_lock_enabled` - Should the resource group for this virtual network be locked? Default `true`.
-- `resource_group_lock_name` - The name of the resource group lock.
-- `resource_group_tags` - A map of tags to apply to the resource group.
 - `route_table_name_firewall` - The name of the route table to create for the firewall routes. Default `route-{vnetname}`.
 - `route_table_name_user_subnets` - The name of the route table to create for the user subnet routes. Default `route-{vnetname}`.
 - `routing_address_space` - A list of IPv4 address spaces in CIDR format that are used for routing to this hub, e.g. `["192.168.0.0","172.16.0.0/12"]`.
@@ -221,25 +215,21 @@ Type:
 
 ```hcl
 map(object({
-    name                            = string
-    address_space                   = list(string)
-    location                        = string
-    resource_group_name             = string
-    route_table_name_firewall       = optional(string)
-    route_table_name_user_subnets   = optional(string)
-    bgp_community                   = optional(string)
-    ddos_protection_plan_id         = optional(string)
-    dns_servers                     = optional(list(string))
-    flow_timeout_in_minutes         = optional(number, 4)
-    mesh_peering_enabled            = optional(bool, true)
-    peering_names                   = optional(map(string))
-    resource_group_creation_enabled = optional(bool, true)
-    resource_group_lock_enabled     = optional(bool, true)
-    resource_group_lock_name        = optional(string)
-    resource_group_tags             = optional(map(string))
-    routing_address_space           = optional(list(string), [])
-    hub_router_ip_address           = optional(string)
-    tags                            = optional(map(string))
+    name                          = string
+    address_space                 = list(string)
+    location                      = string
+    parent_id                     = string
+    route_table_name_firewall     = optional(string)
+    route_table_name_user_subnets = optional(string)
+    bgp_community                 = optional(string)
+    ddos_protection_plan_id       = optional(string)
+    dns_servers                   = optional(list(string))
+    flow_timeout_in_minutes       = optional(number, 4)
+    mesh_peering_enabled          = optional(bool, true)
+    peering_names                 = optional(map(string))
+    routing_address_space         = optional(list(string), [])
+    hub_router_ip_address         = optional(string)
+    tags                          = optional(map(string))
 
     route_table_entries_firewall = optional(set(object({
       name           = string
@@ -435,17 +425,9 @@ Description: A curated output of the route tables created by this module.
 
 Description: The names of the hub virtual networks.
 
-### <a name="output_resource_groups"></a> [resource\_groups](#output\_resource\_groups)
-
-Description: A curated output of the resource groups created by this module.
-
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The resource IDs of the hub virtual networks.
-
-### <a name="output_test"></a> [test](#output\_test)
-
-Description: n/a
 
 ### <a name="output_virtual_networks"></a> [virtual\_networks](#output\_virtual\_networks)
 
@@ -495,19 +477,19 @@ Version: 0.3.1
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/peering
 
-Version: 0.9.2
+Version: 0.11.0
 
 ### <a name="module_hub_virtual_network_subnets"></a> [hub\_virtual\_network\_subnets](#module\_hub\_virtual\_network\_subnets)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm//modules/subnet
 
-Version: 0.9.2
+Version: 0.11.0
 
 ### <a name="module_hub_virtual_networks"></a> [hub\_virtual\_networks](#module\_hub\_virtual\_networks)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.9.2
+Version: 0.11.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

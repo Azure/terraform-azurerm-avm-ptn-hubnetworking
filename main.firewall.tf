@@ -7,7 +7,7 @@ module "hub_firewalls" {
   firewall_sku_tier   = each.value.sku_tier
   location            = var.hub_virtual_networks[each.key].location
   name                = each.value.name
-  resource_group_name = each.value.resource_group_name
+  resource_group_name = local.resource_group_names[each.key]
   enable_telemetry    = var.enable_telemetry
   firewall_management_ip_configuration = each.value.management_ip_enabled ? {
     name                 = try(each.value.management_ip_configuration.name, null)
@@ -62,7 +62,7 @@ module "fw_policies" {
 
   location                                          = var.hub_virtual_networks[each.key].location
   name                                              = each.value.name
-  resource_group_name                               = var.hub_virtual_networks[each.key].resource_group_name
+  resource_group_name                               = local.resource_group_names[each.key]
   enable_telemetry                                  = var.enable_telemetry
   firewall_policy_auto_learn_private_ranges_enabled = each.value.auto_learn_private_ranges_enabled
   firewall_policy_base_policy_id                    = each.value.base_policy_id

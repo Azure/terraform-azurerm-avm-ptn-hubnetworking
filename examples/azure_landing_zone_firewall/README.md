@@ -57,13 +57,11 @@ module "hub_mesh" {
 
   hub_virtual_networks = {
     primary = {
-      name                            = "vnet-hub-primary"
-      address_space                   = ["10.0.0.0/22"]
-      location                        = local.regions.primary
-      resource_group_name             = azurerm_resource_group.hub_rg["primary"].name
-      resource_group_creation_enabled = false
-      resource_group_lock_enabled     = false
-      mesh_peering_enabled            = true
+      name                 = "vnet-hub-primary"
+      address_space        = ["10.0.0.0/22"]
+      location             = local.regions.primary
+      parent_id            = azurerm_resource_group.hub_rg["primary"].id
+      mesh_peering_enabled = true
       peering_names = {
         secondary = "custom-name-primary-to-secondary"
       }
@@ -124,13 +122,11 @@ module "hub_mesh" {
       }
     }
     secondary = {
-      name                            = "vnet-hub-secondary"
-      address_space                   = ["10.1.0.0/22"]
-      location                        = local.regions.secondary
-      resource_group_name             = azurerm_resource_group.hub_rg["secondary"].name
-      resource_group_creation_enabled = false
-      resource_group_lock_enabled     = false
-      mesh_peering_enabled            = true
+      name                 = "vnet-hub-secondary"
+      address_space        = ["10.1.0.0/22"]
+      location             = local.regions.secondary
+      parent_id            = azurerm_resource_group.hub_rg["secondary"].id
+      mesh_peering_enabled = true
       peering_names = {
         primary = "custom-name-secondary-to-primary"
       }
@@ -213,12 +209,12 @@ resource "azurerm_resource_group" "spoke1" {
 
 module "spoke1_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.9.2"
+  version = "0.11.0"
 
-  address_space       = ["10.0.4.0/24"]
-  location            = azurerm_resource_group.spoke1.location
-  resource_group_name = azurerm_resource_group.spoke1.name
-  name                = "vnet-spoke1-${random_pet.rand.id}"
+  address_space = ["10.0.4.0/24"]
+  location      = azurerm_resource_group.spoke1.location
+  parent_id     = azurerm_resource_group.spoke1.id
+  name          = "vnet-spoke1-${random_pet.rand.id}"
   peerings = {
     "spoke1-peering" = {
       name                                 = "spoke1-peering"
@@ -295,12 +291,12 @@ resource "azurerm_resource_group" "spoke2" {
 
 module "spoke2_vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.9.2"
+  version = "0.11.0"
 
-  address_space       = ["10.1.4.0/24"]
-  location            = azurerm_resource_group.spoke2.location
-  resource_group_name = azurerm_resource_group.spoke2.name
-  name                = "vnet-spoke2-${random_pet.rand.id}"
+  address_space = ["10.1.4.0/24"]
+  location      = azurerm_resource_group.spoke2.location
+  parent_id     = azurerm_resource_group.spoke2.id
+  name          = "vnet-spoke2-${random_pet.rand.id}"
   peerings = {
     "spoke2-peering" = {
       name                                 = "spoke2-peering"
@@ -422,10 +418,6 @@ Description: n/a
 
 Description: n/a
 
-### <a name="output_resource_groups"></a> [resource\_groups](#output\_resource\_groups)
-
-Description: n/a
-
 ### <a name="output_route_tables_firewall"></a> [route\_tables\_firewall](#output\_route\_tables\_firewall)
 
 Description: n/a
@@ -452,13 +444,13 @@ Version:
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.9.2
+Version: 0.11.0
 
 ### <a name="module_spoke2_vnet"></a> [spoke2\_vnet](#module\_spoke2\_vnet)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.9.2
+Version: 0.11.0
 
 ### <a name="module_vm_spoke1"></a> [vm\_spoke1](#module\_vm\_spoke1)
 

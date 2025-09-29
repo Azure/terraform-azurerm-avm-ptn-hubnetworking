@@ -42,7 +42,7 @@ locals {
       sku_tier              = vnet.firewall.sku_tier
       subnet_address_prefix = vnet.firewall.subnet_address_prefix
       firewall_policy_id    = try(local.firewall_policy_id[vnet_name], vnet.firewall.firewall_policy_id, null)
-      resource_group_name   = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
+      resource_group_name   = local.resource_group_names[vnet_name]
       private_ip_ranges     = vnet.firewall.private_ip_ranges
       tags                  = vnet.firewall.tags
       management_ip_enabled = try(vnet.firewall.management_ip_enabled, true)
@@ -59,7 +59,7 @@ locals {
         composite_key       = ip_config_value.public_ip_key
         location            = var.hub_virtual_networks[vnet_key].location
         name                = coalesce(try(ip_config_value.public_ip_config.name, null), "pip-fw-${ip_config_value.public_ip_key}")
-        resource_group_name = try(var.hub_virtual_networks[vnet_key].resource_group_name, azurerm_resource_group.rg[vnet_key].name)
+        resource_group_name = local.resource_group_names[vnet_key]
         ip_version          = try(ip_config_value.public_ip_config.ip_version, "IPv4")
         sku_tier            = try(ip_config_value.public_ip_config.sku_tier, "Regional")
         tags                = var.hub_virtual_networks[vnet_key].firewall.tags
@@ -71,7 +71,7 @@ locals {
     for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
       location            = vnet.location
       name                = coalesce(try(vnet.firewall.management_ip_configuration.public_ip_config.name, null), "pip-fw-mgmt-${vnet_name}")
-      resource_group_name = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
+      resource_group_name = local.resource_group_names[vnet_name]
       ip_version          = try(vnet.firewall.management_ip_configuration.public_ip_config.ip_version, "IPv4")
       sku_tier            = try(vnet.firewall.management_ip_configuration.public_ip_config.sku_tier, "Regional")
       tags                = vnet.firewall.tags
@@ -82,7 +82,7 @@ locals {
     for vnet_name, vnet in var.hub_virtual_networks : vnet_name => {
       name                              = try(vnet.firewall.firewall_policy.name, "fwp-${vnet_name}")
       location                          = vnet.location
-      resource_group_name               = try(vnet.resource_group_name, azurerm_resource_group.rg[vnet_name].name)
+      resource_group_name               = local.resource_group_names[vnet_name]
       sku                               = try(vnet.firewall.firewall_policy.sku, "Standard")
       auto_learn_private_ranges_enabled = try(vnet.firewall.firewall_policy.auto_learn_private_ranges_enabled, null)
       base_policy_id                    = try(vnet.firewall.firewall_policy.base_policy_id, null)
