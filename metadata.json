@@ -1,0 +1,8 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Hub Networking",
+  "moduleDescription": "AVM Terraform pattern module for network/hub-networking.",
+  "canonicalType": "network/hub-networking",
+  "owners": [],
+  "telemetryIdPrefix": "46d3xtrf.ptn.daa224b"
+}
